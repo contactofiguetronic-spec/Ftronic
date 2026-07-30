@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recepción Unificada - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .wizard-progress{display:flex;gap:0;margin:0 0 1.5rem;border-radius:12px;overflow:hidden;border:1px solid var(--border-color);background:rgba(0,0,0,0.08)}
+        .wizard-progress .step{flex:1;padding:0.65rem 0.5rem;text-align:center;font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);border-right:1px solid var(--border-color);position:relative}
+        .wizard-progress .step:last-child{border-right:none}
+        .wizard-progress .step span{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:rgba(255,255,255,0.15);margin-right:0.4rem;font-size:0.7rem}
+        .wizard-progress .step.done{background:rgba(34,197,94,0.12);color:var(--success)}
+        .wizard-progress .step.done span{background:var(--success);color:#fff}
+        .wizard-progress .step.active{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;box-shadow:0 2px 12px rgba(37,99,235,0.3)}
+        .wizard-progress .step.active span{background:#fff;color:var(--primary)}
+        .step-panel{display:none}
+        .step-panel.active{display:block;animation:fadeIn 0.3s ease}
+        .wizard-nav{display:flex;justify-content:space-between;gap:0.75rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border-color)}
+        .inspection-section{border:1px solid var(--border-color);border-radius:10px;margin-bottom:0.75rem;overflow:hidden}
+        .inspection-section summary{padding:0.7rem 1rem;cursor:pointer;font-weight:600;font-size:0.85rem;color:var(--text-primary);background:rgba(0,0,0,0.06);list-style:none;display:flex;align-items:center;gap:0.5rem}
+        .inspection-section summary::after{content:"\f107";font-family:"Font Awesome 6 Free";font-weight:900;margin-left:auto;font-size:0.75rem;transition:transform 0.2s}
+        .inspection-section[open] summary::after{transform:rotate(180deg)}
+        .inspection-section summary::-webkit-details-marker{display:none}
+        .inspection-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.6rem;padding:0.8rem 1rem}
+        .inspection-item{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.75rem;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(255,255,255,0.02)}
+        .inspection-item label{font-size:0.8rem;color:var(--text-primary);flex:1;font-weight:500}
+        .inspection-toggle{display:flex;gap:0.15rem}
+        .inspection-toggle label{display:flex;cursor:pointer}
+        .inspection-toggle label input{display:none}
+        .inspection-toggle label span{display:block;padding:0.25rem 0.5rem;font-size:0.7rem;border-radius:6px;font-weight:600;border:1px solid var(--border-color);transition:var(--transition)}
+        .inspection-toggle label input:checked+span{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .inspection-toggle label input[value="Bueno"]:checked+span{background:var(--success);border-color:var(--success)}
+        .inspection-toggle label input[value="Regular"]:checked+span{background:var(--warning);border-color:var(--warning)}
+        .inspection-toggle label input[value="Malo"]:checked+span{background:var(--danger);border-color:var(--danger)}
+        .photo-capture-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.8rem}
+        .photo-slot{border:1px solid var(--border-color);border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.15);position:relative}
+        .photo-slot.required::after{content:"Obligatoria";position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700}
+        .photo-slot.optional::after{content:"Opcional";position:absolute;top:6px;right:6px;background:var(--text-secondary);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700}
+        .photo-slot .photo-preview{min-height:110px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);color:var(--text-secondary);font-size:0.75rem;overflow:hidden}
+        .photo-slot .photo-preview img{width:100%;height:110px;object-fit:cover}
+        .photo-slot .photo-preview i{font-size:1.5rem;margin-bottom:0.3rem;display:block}
+        .photo-slot .photo-actions{display:flex;gap:0.3rem;padding:0.4rem}
+        .photo-slot .photo-actions button{flex:1;padding:0.35rem;font-size:0.7rem}
+        .btn-capture{background:rgba(0,0,0,0.2);border:1px solid var(--border-color);color:var(--text-secondary);border-radius:6px;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:0.3rem}
+        .btn-capture:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .photo-progress{display:flex;align-items:center;gap:0.75rem;margin-top:1rem}
+        .photo-progress .progress-bar{flex:1;height:6px;background:rgba(0,0,0,0.15);border-radius:3px;overflow:hidden}
+        .photo-progress .progress-fill{height:100%;background:var(--success);transition:width 0.3s;width:0}
+        .photo-progress span{font-size:0.78rem;color:var(--text-secondary);white-space:nowrap}
+        .canvas-actions{display:flex;gap:0.5rem;margin-top:0.5rem}
+        .typeahead-results{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+        .typeahead-results div{padding:0.5rem 0.8rem;cursor:pointer;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+        .typeahead-results div:hover{background:rgba(37,99,235,0.1)}
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepción Unificada</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+        <div class="module-hero green">
+            <div class="mh-icon"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span></div>
+            <h2>Recepción Vehicular Unificada</h2>
+            <div class="mh-subtitle">Flujo completo de ingreso de vehículos al taller: cliente, vehículo, inspección visual, fotos, evaluación técnica y firma. Genera PDF de 2 páginas.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Registra el ingreso de un vehículo en un solo wizard de 5 pasos: (1) Datos del cliente, (2) Datos del vehículo, (3) Inspección visual con checklist, (4) Captura de fotos, (5) Evaluación técnica con firma. Genera acta PDF con original y copia cliente.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Clientes</span><span class="mc-tag">Vehículos</span><span class="mc-tag">Órdenes de Trabajo</span><span class="mc-tag">Presupuestos</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Inicio del flujo</div>
+                <div class="mc-tags"><span class="mc-tag accent">Inicio del flujo</span><span class="mc-tag">Wizard</span><span class="mc-tag accent">PDF</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Buscar o crear cliente. Luego buscar o crear vehículo, completar checklist de inspección y finalmente capturar fotos del vehículo.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Buscar o crear cliente</span><span class="mhe-step"><span class="step-num">2</span> Buscar o crear vehículo</span><span class="mhe-step"><span class="step-num">3</span> Completar checklist de inspección</span><span class="mhe-step"><span class="step-num">4</span> Capturar fotos del vehículo</span><span class="mhe-step"><span class="step-num">5</span> Firmar y generar PDF</span></div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por patente, cliente o N° orden...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nueva Recepción</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span></div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">Nueva Recepción</h2>
+                    <div class="ficha-sub" id="fichaSub">Complete los pasos del wizard para registrar la recepción</div>
+                </div>
+                <div class="ficha-actions">
+                    <button type="button" class="btn btn-sm btn-primary" style="display:none" id="btnCrearOT" onclick="crearOTdesdeRecepcion()"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span> Crear OT</button>
+                    <button type="button" class="btn btn-sm btn-danger" style="display:none" id="btnDerivarDesarme" data-perm="recepcion:crear" onclick="derivarADesarme()"><i class="fas fa-car-burst"></i> Derivar a Desarme</button>
+                    <button type="button" class="btn btn-sm btn-secondary" style="display:none" id="btnVerCliente" onclick="openClienteFicha()"><i class="fas fa-user"></i> Ver Cliente</button>
+                    <button type="button" class="btn btn-sm btn-accent" style="display:none" id="btnPdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button type="button" class="btn btn-sm btn-danger-outline" style="display:none" id="btnEliminar" data-perm="recepcion:eliminar"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnVolver"><i class="fas fa-arrow-left"></i> Volver</button>
+                </div>
+            </div>
+
+            <form id="dataForm" enctype="multipart/form-data" data-draft-module="recepcion_unificada">
+                <input type="hidden" name="id" id="record_id">
+                <input type="hidden" name="cliente_id" id="cliente_id">
+                <input type="hidden" name="vehiculo_id" id="vehiculo_id">
+
+                <div class="wizard-progress" id="wizardProgress">
+                    <div class="step active" data-step="0"><span>1</span> Cliente</div>
+                    <div class="step" data-step="1"><span>2</span> Vehículo</div>
+                    <div class="step" data-step="2"><span>3</span> Inspección</div>
+                    <div class="step" data-step="3"><span>4</span> Fotos</div>
+                    <div class="step" data-step="4"><span>5</span> Evaluación</div>
+                </div>
+
+                <!-- PASO 0: CLIENTE -->
+                <div class="step-panel active" data-step="0">
+                    <div class="form-section-title"><i class="fas fa-user"></i> Datos Principales del Cliente</div>
+                    <div class="form-group"><label>Folio</label><input type="text" name="folio" id="folio" readonly style="background:#f0f0f0;font-weight:700;color:#0f2027;" value="Se generará al guardar"></div>
+                    <div class="form-group" style="position:relative">
+                        <label>Buscar cliente existente</label>
+                        <input type="text" id="buscarCliente" placeholder="Escriba nombre, RUT o teléfono..." autocomplete="off">
+                        <div id="resultadosCliente" class="typeahead-results"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Nombre *</label><input type="text" id="cli_nombre" name="cliente_nombre" required></div>
+                        <div class="form-group"><label>Apellido *</label><input type="text" id="cli_apellido" name="cliente_apellido" required></div>
+                        <div class="form-group"><label>Teléfono *</label><input type="tel" id="cli_telefono" name="cliente_telefono" required></div>
+                    </div>
+                    <div class="form-section-title"><i class="fas fa-caret-right"></i> Datos Extendidos</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>RUT</label><input type="text" id="cli_rut" name="cliente_rut" maxlength="12"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="cli_correo" name="cliente_correo"></div>
+                        <div class="form-group full-width"><label>Domicilio</label><textarea id="cli_domicilio" name="cliente_domicilio" rows="2"></textarea></div>
+                    </div>
+                </div>
+
+                <!-- PASO 1: VEHÍCULO -->
+                <div class="step-panel" data-step="1">
+                    <div class="form-section-title"><i class="fas fa-car"></i> Datos Principales del Vehículo</div>
+                    <div class="form-group" style="position:relative">
+                        <label>Buscar vehículo existente</label>
+                        <input type="text" id="buscarVehiculo" placeholder="Escriba patente, marca o modelo..." autocomplete="off">
+                        <div id="resultadosVehiculo" class="typeahead-results"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Patente *</label><input type="text" id="veh_patente" name="vehiculo_patente" required style="text-transform:uppercase"></div>
+                        <div class="form-group"><label>Marca *</label><div class="select-wrapper"><select id="veh_marca" name="vehiculo_marca" data-category="marca_vehiculo" required><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Modelo *</label><input type="text" id="veh_modelo" name="vehiculo_modelo" required></div>
+                    </div>
+                    <div class="form-section-title"><i class="fas fa-caret-right"></i> Datos Extendidos</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Año</label><input type="number" id="veh_anio" name="vehiculo_anio" min="1990" max="2030"></div>
+                        <div class="form-group"><label>VIN</label><input type="text" id="veh_vin" name="vehiculo_vin"></div>
+                        <div class="form-group"><label>Color</label><div class="select-wrapper"><select id="veh_color" name="vehiculo_color" data-category="color_vehiculo"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Combustible</label><div class="select-wrapper"><select id="veh_combustible" name="vehiculo_combustible" data-category="combustible"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Kilometraje</label><input type="number" id="veh_kilometraje" name="vehiculo_kilometraje" step="100"></div>
+                        <div class="form-group"><label>Cilindrada Motor</label><input type="text" id="veh_cilindrada_motor" name="vehiculo_cilindrada_motor"></div>
+                        <div class="form-group"><label>Transmisión</label><div class="select-wrapper"><select id="veh_transmision" name="vehiculo_transmision" data-category="transmision"><option value="">—</option></select></div></div>
+                        <div class="form-group"><label>Tracción</label><div class="select-wrapper"><select id="veh_traccion" name="vehiculo_traccion" data-category="traccion"><option value="">—</option></select></div></div>
+                        <div class="form-group"><label>Tipo Carrocería</label><div class="select-wrapper"><select id="veh_tipo_carroceria" name="vehiculo_tipo_carroceria" data-category="tipo_carroceria"><option value="">—</option></select></div></div>
+                        <div class="form-group"><label>Procedencia</label><div class="select-wrapper"><select id="veh_procedencia" name="vehiculo_procedencia" data-category="procedencia"><option value="">—</option></select></div></div>
+                        <div class="form-group"><label>Diseño Estructural</label><div class="select-wrapper"><select id="veh_disenoestructural" name="vehiculo_disenoestructural" data-category="diseno_estructural"><option value="">—</option></select></div></div>
+                        <div class="form-group full-width"><label>Notas Técnicas</label><textarea id="veh_notas_tecnico" name="vehiculo_notas_tecnico" rows="2"></textarea></div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: INSPECCIÓN VISUAL -->
+                <div class="step-panel" data-step="2">
+                    <details class="inspection-section" open>
+                        <summary><i class="fas fa-car"></i> Exterior</summary>
+                        <div class="inspection-grid" id="gridExterior"></div>
+                    </details>
+                    <details class="inspection-section">
+                        <summary><i class="fas fa-chair"></i> Interior</summary>
+                        <div class="inspection-grid" id="gridInterior"></div>
+                    </details>
+                    <details class="inspection-section">
+                        <summary><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span> Motor / Mecánica</summary>
+                        <div class="inspection-grid" id="gridMotor"></div>
+                    </details>
+                    <details class="inspection-section">
+                        <summary><i class="fas fa-shield-alt"></i> Seguridad</summary>
+                        <div class="inspection-grid" id="gridSeguridad"></div>
+                    </details>
+                    <details class="inspection-section">
+                        <summary><i class="fas fa-comment"></i> Observaciones</summary>
+                        <div class="form-grid" style="padding:0.8rem 1rem">
+                            <div class="form-group full-width"><label>Ralladuras</label><textarea id="insp_ralladuras" name="insp_ralladuras" rows="2"></textarea></div>
+                            <div class="form-group full-width"><label>Abollones</label><textarea id="insp_abollones" name="insp_abollones" rows="2"></textarea></div>
+                            <div class="form-group full-width"><label>Observaciones Generales</label><textarea id="insp_observaciones_generales" name="insp_observaciones_generales" rows="3"></textarea></div>
+                        </div>
+                    </details>
+                    <details class="inspection-section">
+                        <summary><i class="fas fa-exclamation-triangle"></i> Alertas Críticas</summary>
+                        <div class="form-grid" style="padding:0.8rem 1rem">
+                            <div class="form-group">
+                                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                                    <input type="checkbox" name="alerta_pernos_rodados" id="alerta_pernos_rodados" value="1" style="width:auto">
+                                    <span><i class="fas fa-exclamation-circle"></i> Pernos Rodados</span>
+                                </label>
+                                <small>El cliente reporta pernos rodados o sueltos</small>
+                            </div>
+                            <div class="form-group">
+                                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                                    <input type="checkbox" name="alerta_falla_red" id="alerta_falla_red" value="1" style="width:auto">
+                                    <span><i class="fas fa-wifi"></i> Falla de Red Prevía</span>
+                                </label>
+                                <small>Se reporta falla en sistema eléctrico/red previa</small>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- PASO 3: FOTOS -->
+                <div class="step-panel" data-step="3">
+                    <div class="form-section-title"><i class="fas fa-camera"></i> Fotografías del Vehículo</div>
+                    <div class="photo-capture-grid" id="photoGrid"></div>
+                    <div class="photo-progress">
+                        <div class="progress-bar"><div class="progress-fill" id="photoProgressFill"></div></div>
+                        <span id="photoProgressText">0 de 4 obligatorias</span>
+                    </div>
+                    <input type="file" id="inputFotografia" accept="image/*" capture="environment" style="display:none">
+                    <input type="file" id="inputGaleria" accept="image/*" style="display:none">
+                </div>
+
+                <!-- PASO 4: EVALUACIÓN + FIRMA -->
+                <div class="step-panel" data-step="4">
+                    <div class="form-section-title"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Evaluación Técnica</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Estado General</label><select name="eval_estado_general" id="eval_estado_general"><option value="">—</option><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select></div>
+                        <div class="form-group"><label>N° Orden Interna</label><input type="text" name="numero_orden_interna"></div>
+                        <div class="form-group"><label>Asesor</label><div class="select-wrapper"><select id="asesor_taller" name="asesor_taller" data-linked="empleados"><option value="">— Seleccionar asesor —</option></select></div></div>
+                        <div class="form-group"><label>Llegada</label><input type="text" name="forma_llegada" list="llegadas"><datalist id="llegadas"><option>Propia</option><option>Grúa</option><option>Remolque</option></datalist></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Motivo de Visita</label><textarea id="eval_motivo_visita" name="eval_motivo_visita" rows="2"></textarea></div>
+                    </div>
+                    <div class="form-section-title"><i class="fas fa-signature"></i> Firma de Conformidad</div>
+                    <div class="form-group full-width">
+                        <canvas id="canvasFirma" width="400" height="150" style="width:100%;border:1px solid var(--border-color);border-radius:10px;touch-action:none;cursor:crosshair;background:rgba(0,0,0,0.15)"></canvas>
+                        <div class="canvas-actions">
+                            <button type="button" class="btn btn-sm btn-outline" id="btnLimpiarFirma"><i class="fas fa-eraser"></i> Limpiar</button>
+                        </div>
+                        <input type="hidden" name="eval_firma_cliente" id="eval_firma_cliente">
+                    </div>
+                </div>
+
+                <!-- NAVEGACIÓN WIZARD -->
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-secondary" id="btnPrev"><i class="fas fa-chevron-left"></i> Anterior</button>
+                    <div style="display:flex;gap:0.5rem">
+                        <button type="button" class="btn btn-primary" id="btnNext">Siguiente <i class="fas fa-chevron-right"></i></button>
+                        <button type="submit" class="btn btn-success" id="btnGuardarFinal" style="display:none"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/pdf-generator.js?v=20260706050000"></script>
+    <script src="js/recepcion_unificada.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

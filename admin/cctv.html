@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cámaras CCTV - Figuetronic</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/index.css?v=20260714070000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dfc-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .dfc-stat { background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-subtle); position: relative; overflow: hidden; }
+        .dfc-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary); }
+        .dfc-stat.ok::before { background: #10b981; }
+        .dfc-stat.warn::before { background: #f59e0b; }
+        .dfc-stat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.6rem; }
+        .dfc-stat.ok .dfc-stat-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+        .dfc-stat.warn .dfc-stat-icon { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .dfc-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .dfc-stat-label { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.3rem; }
+
+        .dfc-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-subtle); padding: 0 1.25rem; background: var(--bg-hover); }
+        .dfc-tab { padding: 10px 16px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .dfc-tab:hover { color: var(--text-primary); }
+        .dfc-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .dfc-tab-panel { display: none; padding-top: 1.25rem; }
+        .dfc-tab-panel.active { display: block; }
+
+        .dfc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+        .dfc-cam { background: #fff; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .dfc-cam-head { padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+        .dfc-cam-head h3 { font-size: 0.92rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .dfc-cam-head .dfc-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+        .dfc-cam-head .dfc-dot.off { background: #ef4444; }
+        .dfc-cam-img { position: relative; aspect-ratio: 16/9; background: #0b1220; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .dfc-cam-img img { width: 100%; height: 100%; object-fit: contain; }
+        .dfc-cam-placeholder { color: #64748b; text-align: center; font-size: 0.82rem; }
+        .dfc-cam-placeholder i { font-size: 2rem; display: block; margin-bottom: 0.5rem; color: #334155; }
+        .dfc-cam-actions { display: flex; gap: 6px; padding: 0.7rem 1.1rem; flex-wrap: wrap; }
+        .dfc-cam-meta { font-size: 0.74rem; color: var(--text-tertiary); padding: 0 1.1rem 0.7rem; }
+
+        .dfc-btn { padding: 7px 12px; border-radius: 8px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: var(--font); }
+        .dfc-btn-primary { background: var(--primary); color: #fff; }
+        .dfc-btn-secondary { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .dfc-btn-success { background: #10b981; color: #fff; }
+        .dfc-btn-danger { background: #ef4444; color: #fff; }
+        .dfc-btn-sm { padding: 5px 9px; font-size: 0.76rem; }
+        .dfc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .dfc-card { background: #fff; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .dfc-card-head { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+        .dfc-card-head h3 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .dfc-card-head h3 i { color: var(--primary); }
+        .dfc-card-body { padding: 1.25rem; }
+
+        .dfc-dev { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-subtle); }
+        .dfc-dev:last-child { border-bottom: none; }
+        .dfc-dev-info h4 { font-size: 0.9rem; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+        .dfc-dev-info .dfc-p2p { font-family: monospace; font-size: 0.78rem; color: var(--text-secondary); background: var(--bg-hover); padding: 2px 8px; border-radius: 6px; }
+        .dfc-dev-info .dfc-meta { font-size: 0.76rem; color: var(--text-tertiary); margin-top: 3px; }
+        .dfc-dev-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        .dfc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .dfc-form-row .full { grid-column: 1 / -1; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; font-family: var(--font); outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+        .form-hint { font-size: 0.74rem; color: var(--text-tertiary); margin-top: 3px; }
+        .dfc-check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; cursor: pointer; }
+        .dfc-check input { width: auto; }
+
+        .dfc-ptz-grid { display: grid; grid-template-columns: repeat(3, 48px); gap: 6px; margin: 0 auto 10px; justify-content: center; }
+        .dfc-ptz-lens { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+        .dfc-ptz-btn { width: 48px; height: 40px; border: 1.5px solid var(--border-color); border-radius: 8px; background: #fff; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; user-select: none; transition: background 0.12s; }
+        .dfc-ptz-btn:hover { background: var(--hover-bg, #f1f5f9); }
+        .dfc-ptz-btn:active, .dfc-ptz-btn.dfc-ptz-active { background: rgba(59,130,246,0.18); border-color: #3b82f6; }
+        .dfc-ptz-btn.dfc-ptz-stop { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #b91c1c; }
+        .dfc-ptz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .dfc-empty { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); }
+        .dfc-empty i { font-size: 2.5rem; color: var(--text-tertiary); margin-bottom: 1rem; display: block; }
+        .dfc-empty p { font-size: 0.9rem; }
+
+        .dfc-banner { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); color: #1e40af; border-radius: 10px; padding: 0.85rem 1.1rem; font-size: 0.82rem; line-height: 1.5; margin-bottom: 1.25rem; display: flex; gap: 10px; align-items: flex-start; }
+        .dfc-banner i { color: #3b82f6; margin-top: 3px; }
+
+        .modal-content { max-width: 560px; }
+        body:not(.auth-ok) .main-content { visibility: hidden !important; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-camera"><i class="fas fa-video"></i></span> Cámaras CCTV</h1>
+        </div>
+        <div class="header-right">
+            <button class="dfc-btn dfc-btn-secondary" id="btnRefresh"><i class="fas fa-sync"></i> Actualizar</button>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+
+    <div class="module-hero blue">
+        <div class="mh-icon"><i class="fas fa-video"></i></div>
+        <h2>Videovigilancia del Taller</h2>
+        <div class="mh-subtitle">Monitorea las cámaras Dahua del taller, abre la transmisión en la nube de Dahua y administra los dispositivos P2P registrados.</div>
+    </div>
+
+    <div class="dfc-banner">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Modo de visualización:</strong> Configure la <strong>IP pública / DDNS</strong> del dispositivo para acceder vía port-forwarding desde el servidor. El botón <strong>"Ver en vivo"</strong> carga la transmisión MJPEG directamente. Si el DVR no es alcanzable, use <strong>"Abrir en nube Dahua"</strong> para acceder vía la app DMSS con el ID P2P. Para port-forwarding, necesita abrir los puertos HTTP (8080 recomendado), RTSP (554) y SDK (37777) en el router.
+        </div>
+    </div>
+    </div>
+
+    <div class="dfc-stats-grid" id="statsGrid">
+        <div class="dfc-stat"><div class="dfc-stat-icon"><i class="fas fa-server"></i></div><div class="dfc-stat-value" id="statDevices">—</div><div class="dfc-stat-label">Dispositivos</div></div>
+        <div class="dfc-stat ok"><div class="dfc-stat-icon"><i class="fas fa-video"></i></div><div class="dfc-stat-value" id="statCamaras">—</div><div class="dfc-stat-label">Cámaras</div></div>
+        <div class="dfc-stat warn"><div class="dfc-stat-icon"><i class="fas fa-cloud"></i></div><div class="dfc-stat-value" id="statNube">—</div><div class="dfc-stat-label">Con nube lista</div></div>
+        <div class="dfc-stat"><div class="dfc-stat-icon"><i class="fas fa-plug"></i></div><div class="dfc-stat-value" id="statOnline">—</div><div class="dfc-stat-label">En línea (P2P)</div></div>
+    </div>
+
+    <div class="dfc-tabs">
+        <button class="dfc-tab active" data-tab="camaras"><i class="fas fa-video"></i> Cámaras</button>
+        <button class="dfc-tab" data-tab="dispositivos"><i class="fas fa-server"></i> Dispositivos</button>
+        <button class="dfc-tab" data-tab="config"><i class="fas fa-sliders-h"></i> Configuración</button>
+    </div>
+
+    <div class="dfc-tab-panel active" id="tab-camaras">
+        <div class="dfc-grid" id="camarasGrid">
+            <div class="dfc-empty"><i class="fas fa-spinner fa-spin"></i><p>Cargando cámaras...</p></div>
+        </div>
+    </div>
+
+    <div class="dfc-tab-panel" id="tab-dispositivos">
+        <div class="dfc-card">
+            <div class="dfc-card-head">
+                <h3><i class="fas fa-server"></i> Dispositivos Dahua registrados</h3>
+                <button class="dfc-btn dfc-btn-primary" id="btnNuevoDispositivo"><i class="fas fa-plus"></i> Nuevo dispositivo</button>
+            </div>
+            <div id="dispositivosList">
+                <div class="dfc-empty"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dfc-tab-panel" id="tab-config">
+        <div class="dfc-card">
+            <div class="dfc-card-head"><h3><i class="fas fa-sliders-h"></i> Configuración general del módulo</h3></div>
+            <div class="dfc-card-body">
+                <div class="form-group">
+                    <label>Intervalo de auto-refresco de snapshot (segundos)</label>
+                    <input type="number" id="cfgSnapshotInterval" min="3" max="60" value="10">
+                    <div class="form-hint">Solo aplica a la vista embebida best-effort. La nube de Dahua usa su propio streaming.</div>
+                </div>
+                <div class="form-group">
+                    <label>Notas del administrador</label>
+                    <textarea id="cfgNotas" rows="3" placeholder="Notas internas sobre la instalación CCTV..."></textarea>
+                </div>
+                <button class="dfc-btn dfc-btn-primary" id="btnGuardarConfig"><i class="fas fa-save"></i> Guardar configuración</button>
+            </div>
+        </div>
+
+        <div class="dfc-card">
+            <div class="dfc-card-head"><h3><i class="fas fa-cloud"></i> Dahua DoLynk Developer (streaming vía nube)</h3></div>
+            <div class="dfc-card-body">
+                <div class="form-hint" style="margin-bottom:12px;">Alternativa a port-forward/VPS: genera la URL de stream del DVR sin exponer su IP. Requiere cuenta de desarrollador en <a href="https://dolynk.dahuasecurity.com" target="_blank" rel="noopener">Dahua DoLynk</a>, producto creado y el DVR vinculado. La SecretKey se guarda cifrada en el servidor.</div>
+                <div class="dfc-form-row">
+                    <div class="form-group">
+                        <label>AccessKey</label>
+                        <input type="text" id="cfgDolynkAk" placeholder="AccessKey del producto" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>SecretAccessKey</label>
+                        <input type="password" id="cfgDolynkSk" placeholder="SecretAccessKey del producto" autocomplete="off">
+                    </div>
+                </div>
+                <div class="dfc-form-row">
+                    <div class="form-group">
+                        <label>ProductId</label>
+                        <input type="text" id="cfgDolynkPid" placeholder="ID del producto" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Región</label>
+                        <select id="cfgDolynkRegion">
+                            <option value="sg">Singapur</option>
+                            <option value="fk">Frankfurt</option>
+                            <option value="or">Oregón</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="dfc-btn dfc-btn-primary" id="btnGuardarDolynk"><i class="fas fa-save"></i> Guardar credenciales DoLynk</button>
+                <span id="dolynkStatus" class="form-hint" style="margin-left:10px;"></span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+        <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+        <a href="clientes.html" class="bottom-nav-item"><span class="nav-icon-box icon-people"><i class="fas fa-user-group"></i></span><span>Clientes</span></a>
+        <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+        <a href="ejecucion_ot.html" class="bottom-nav-item"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span><span>Ejecución</span></a>
+        <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+    </div>
+</nav>
+
+<!-- Modal: Dispositivo -->
+<div class="modal" id="dispositivoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-server"></i> <span id="dispModalTitle">Nuevo dispositivo Dahua</span></h3>
+            <button class="modal-close" onclick="closeModal('dispositivoModal')">&times;</button>
+        </div>
+        <form class="modal-body" id="dispForm" onsubmit="return false;">
+            <input type="hidden" id="disp-id">
+            <div class="dfc-form-row">
+                <div class="form-group full">
+                    <label>Nombre del dispositivo *</label>
+                    <input type="text" id="disp-nombre" placeholder="Ej: DVR Taller Principal">
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group full">
+                    <label>Device ID P2P (SN) *</label>
+                    <input type="text" id="disp-p2p" placeholder="Ej: 7E079F2PAZF47FC" style="font-family:monospace;">
+                    <div class="form-hint">Imprime en etiqueta del DVR o en Configuración → Red → P2P.</div>
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group">
+                    <label>Usuario DVR *</label>
+                    <input type="text" id="disp-usuario" placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label>Clave DVR</label>
+                    <div id="disp-clave-status" class="form-hint"></div>
+                    <input type="password" id="disp-clave" placeholder="Clave del DVR" autocomplete="off">
+                    <label class="dfc-check"><input type="checkbox" id="disp-clave-cambiar"> Cambiar clave</label>
+                    <div class="form-hint">Se cifra antes de guardarse en la base de datos.</div>
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group">
+                    <label>IP local / URL (opcional)</label>
+                    <input type="text" id="disp-ip" placeholder="192.168.1.64">
+                </div>
+                <div class="form-group">
+                    <label>IP pública / DDNS (para port-forward)</label>
+                    <input type="text" id="disp-ip-publica" placeholder="taller-cctv.ddns.net o IP pública">
+                    <div class="form-hint">IP o hostname accesible desde internet (requiere port-forward en router).</div>
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group">
+                    <label>Puerto HTTP (opcional)</label>
+                    <input type="number" id="disp-puerto" placeholder="80" value="80">
+                </div>
+                <div class="form-group">
+                    <label>Puerto RTSP (opcional)</label>
+                    <input type="number" id="disp-rtsp" placeholder="554" value="554">
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group">
+                    <label>Puerto SDK Dahua (default 37777)</label>
+                    <input type="number" id="disp-sdk" placeholder="37777" value="37777">
+                    <div class="form-hint">Puerto del protocolo SDK (usado por DMSS).</div>
+                </div>
+                <div class="form-group">
+                    <label>Portal web Dahua (opcional)</label>
+                    <input type="text" id="disp-portal" placeholder="https://dahua.com">
+                </div>
+            </div>
+            <div class="dfc-form-row">
+                <div class="form-group full">
+                    <label>Notas</label>
+                    <textarea id="disp-notas" rows="2" placeholder="Ubicación, modelo, observaciones..."></textarea>
+                </div>
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button class="dfc-btn dfc-btn-secondary" onclick="closeModal('dispositivoModal')">Cancelar</button>
+            <button class="dfc-btn dfc-btn-primary" id="btnGuardarDispositivo"><i class="fas fa-save"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cámara -->
+<div class="modal" id="camaraModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-video"></i> <span id="camModalTitle">Nueva cámara</span></h3>
+            <button class="modal-close" onclick="closeModal('camaraModal')">&times;</button>
+        </div>
+        <form class="modal-body" id="camForm" onsubmit="return false;">
+            <input type="hidden" id="cam-id">
+            <input type="hidden" id="cam-dispositivo_id">
+            <div class="dfc-form-row">
+                <div class="form-group">
+                    <label>Canal *</label>
+                    <input type="number" id="cam-canal" min="1" max="64" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="cam-nombre" placeholder="Ej: Recepción">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ubicación</label>
+                <input type="text" id="cam-ubicacion" placeholder="Ej: Recepción del taller">
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button class="dfc-btn dfc-btn-secondary" onclick="closeModal('camaraModal')">Cancelar</button>
+            <button class="dfc-btn dfc-btn-primary" id="btnGuardarCamara"><i class="fas fa-save"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ver en vivo -->
+<div class="modal" id="liveModal">
+    <div class="modal-content" style="max-width:760px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-video"></i> <span id="liveTitle">Vista en vivo</span></h3>
+            <button class="modal-close" onclick="closeModal('liveModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="dfc-cam-img" style="aspect-ratio:16/9;border-radius:10px;" id="liveImgWrap">
+                <div class="dfc-cam-placeholder"><i class="fas fa-spinner fa-spin"></i><span>Cargando...</span></div>
+            </div>
+            <div id="liveStatus" class="form-hint" style="margin-top:8px;"></div>
+            <div id="liveDolynkWrap" style="margin-top:10px; display:none;">
+                <div class="form-hint"><i class="fas fa-satellite-dish"></i> Stream DoLynk (RTSP/WebSocket — requiere reproductor web Dahua para embebido):</div>
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                    <input type="text" id="liveDolynkUrl" readonly style="flex:1; font-size:0.75rem; padding:6px 8px; border:1.5px solid var(--border-color); border-radius:8px; background:#f8fafc;">
+                    <button class="dfc-btn dfc-btn-secondary dfc-btn-sm" id="btnCopyDolynk" type="button"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div id="ptzPanel" style="margin-top:14px;">
+                <div class="form-hint" style="margin-bottom:8px;"><i class="fas fa-arrows-alt"></i> PTZ · mantenga presionado para mover (solo cámaras motorizadas)</div>
+                <div class="dfc-ptz-grid">
+                    <button type="button" class="dfc-ptz-btn" data-ptz="LeftUp" title="Arriba-Izquierda"><i class="fas fa-arrow-up-left"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="Up" title="Arriba"><i class="fas fa-arrow-up"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="RightUp" title="Arriba-Derecha"><i class="fas fa-arrow-up-right"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="Left" title="Izquierda"><i class="fas fa-arrow-left"></i></button>
+                    <button type="button" class="dfc-ptz-btn dfc-ptz-stop" data-ptz="Stop" title="Detener"><i class="fas fa-square"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="Right" title="Derecha"><i class="fas fa-arrow-right"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="LeftDown" title="Abajo-Izquierda"><i class="fas fa-arrow-down-left"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="Down" title="Abajo"><i class="fas fa-arrow-down"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="RightDown" title="Abajo-Derecha"><i class="fas fa-arrow-down-right"></i></button>
+                </div>
+                <div class="dfc-ptz-lens">
+                    <button type="button" class="dfc-ptz-btn" data-ptz="ZoomIn" title="Acercar"><i class="fas fa-search-plus"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="ZoomOut" title="Alejar"><i class="fas fa-search-minus"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="FocusNear" title="Foco cerca"><i class="fas fa-compress"></i></button>
+                    <button type="button" class="dfc-ptz-btn" data-ptz="FocusFar" title="Foco lejos"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="dfc-btn dfc-btn-secondary" id="btnLivePause" title="Pausar"><i class="fas fa-pause"></i></button>
+            <button class="dfc-btn dfc-btn-secondary" id="btnLiveQuality" data-subtype="1" title="Calidad del stream"><i class="fas fa-signal"></i> Sub-stream</button>
+            <button class="dfc-btn dfc-btn-secondary" id="btnLiveCloud"><i class="fas fa-cloud"></i> Abrir en nube Dahua</button>
+            <button class="dfc-btn dfc-btn-secondary" id="btnLiveDolynk"><i class="fas fa-satellite-dish"></i> Ver vía DoLynk</button>
+            <button class="dfc-btn dfc-btn-primary" id="btnLiveDolynkAdd"><i class="fas fa-plus-circle"></i> Vincular DoLynk</button>
+            <button class="dfc-btn dfc-btn-secondary" id="btnLiveDolynkStatus"><i class="fas fa-info-circle"></i> Estado nube</button>
+            <button class="dfc-btn dfc-btn-secondary" onclick="closeModal('liveModal')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/cctv.js?v=20260721100000"></script>
+</body>
+</html>

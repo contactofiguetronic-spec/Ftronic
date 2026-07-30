@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejecución de OT - Figuetronic</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/ejecucion_ot.css?v=20260706050000">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span> Ejecución de OT</h1>
+        </div>
+        <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+            <label class="header-label"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span> Técnico:</label>
+            <select id="empleado-select" class="header-select">
+                <option value="">— Seleccionar —</option>
+            </select>
+            <button class="btn btn-sm btn-primary" id="btn-refresh"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+
+    <!-- ════════ VISTA: LISTA DE OTs ════════ -->
+    <section id="view-list">
+        <div class="module-hero blue">
+            <div class="mh-icon"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span></div>
+            <h2>Órdenes de Trabajo Operativas</h2>
+            <div class="mh-subtitle">Seleccione una OT para iniciar el dashboard operacional. Gestión completa de checklist, multimedia, repuestos, etapas y diagnóstico.</div>
+        </div>
+        <div class="module-help" style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.8rem;font-size:0.82rem;color:var(--text-secondary);">
+            <strong><i class="fas fa-info-circle"></i> Cómo usar:</strong>
+            Seleccione su <strong>técnico</strong> en el selector superior, luego elija una OT para iniciar. El cronómetro se activa al dar <em>Iniciar Trabajo</em>. Las OTs finalizadas quedan aquí como referencia.
+        </div>
+
+        <!-- Filtros de estado -->
+        <div class="ejec-filters" id="ejecFilters">
+            <button class="ejec-filter-btn active" data-filter="all"><i class="fas fa-layer-group"></i> Todas</button>
+            <button class="ejec-filter-btn" data-filter="abierta"><i class="fas fa-hourglass-start"></i> Abiertas</button>
+            <button class="ejec-filter-btn" data-filter="proceso"><i class="fas fa-spinner"></i> En Proceso</button>
+            <button class="ejec-filter-btn" data-filter="diagnostico"><i class="fas fa-stethoscope"></i> Diagnóstico</button>
+            <button class="ejec-filter-btn" data-filter="finalizado"><i class="fas fa-check-circle"></i> Finalizadas</button>
+        </div>
+
+        <!-- Secciones agrupadas por estado -->
+        <div id="ejec-sections"></div>
+    </section>
+
+    <!-- ════════ VISTA: DASHBOARD OPERACIONAL ════════ -->
+    <section id="view-dashboard" style="display:none;">
+        <!-- HEADER OT -->
+        <div class="ejec-dash-head">
+            <button class="btn btn-sm btn-outline" id="btn-volver"><i class="fas fa-arrow-left"></i> Volver</button>
+            <div class="ejec-dash-title">
+                <h2 id="ot-titulo">OT #—</h2>
+                <span id="ot-estado-label" class="ot-estado estado-pendiente">—</span>
+            </div>
+            <div class="ejec-dash-actions">
+                <button class="btn btn-success" id="btn-clock-in"><i class="fas fa-play"></i> Iniciar Trabajo</button>
+                <button class="btn btn-warning" id="btn-clock-out" style="display:none;"><i class="fas fa-flag-checkered"></i> Finalizar Trabajo</button>
+            </div>
+        </div>
+
+        <div id="dashboard-content">
+
+            <!-- BARRA CRONOMETRO -->
+            <div class="ejec-cron">
+                <i class="fas fa-stopwatch"></i>
+                <span class="ejec-cron-lbl">Tiempo en ejecución</span>
+                <span id="cronometro" class="ejec-cron-val">00:00:00</span>
+            </div>
+            <div class="module-help" style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.8rem;font-size:0.82rem;color:var(--text-secondary);">
+                <strong><i class="fas fa-info-circle"></i> Flujo:</strong>
+                1) <em>Iniciar Trabajo</em> activa el cronómetro → 2) Marque cada servicio como <em>Completado</em> → 3) Al terminar todos, presione <em>Finalizar Trabajo</em>. Use los botones <i class="fas fa-plus-circle"></i> para agregar servicios o repuestos.
+            </div>
+
+            <!-- C1: CLIENTE + VEHÍCULO (siempre visible) -->
+            <div class="ejec-card" id="section-c1">
+                <header class="ejec-card-head collapsible-header" data-target="c1-content">
+                    <span><i class="fas fa-id-card"></i> Cliente y Vehículo</span>
+                    <i class="fas fa-chevron-up"></i>
+                </header>
+                <div class="ejec-card-body" id="c1-content"></div>
+            </div>
+
+            <!-- C2: RECEPCIÓN (collapsible) -->
+            <div class="ejec-card collapsible-card" id="section-c2">
+                <header class="ejec-card-head collapsible-header" data-target="c2-content">
+                    <span><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepción y Multimedia</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c2-content"></div>
+            </div>
+
+            <!-- C3: INSPECCIÓN VISUAL (collapsible) -->
+            <div class="ejec-card collapsible-card" id="section-c3">
+                <header class="ejec-card-head collapsible-header" data-target="c3-content">
+                    <span><i class="fas fa-search"></i> Inspección Visual de Entrada</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c3-content"></div>
+            </div>
+
+            <!-- C4: SERVICIOS Y TRABAJOS (checklist interactivo, core) -->
+            <div class="ejec-card" id="section-c4">
+                <header class="ejec-card-head">
+                    <span><i class="fas fa-wrench"></i> Servicios y Trabajos</span>
+                    <div class="ejec-card-head-right">
+                        <span id="checklist-progress" class="ejec-progress">0 / 0 completados</span>
+                        <button class="btn btn-sm btn-accent" id="btn-agregar-servicio"><i class="fas fa-plus-circle"></i> Agregar Servicio</button>
+                        <button class="btn btn-sm btn-accent" id="btn-servicio-rapido"><span class="nav-icon-box icon-bolt"><i class="fas fa-bolt"></i></span> Servicio Rápido</button>
+                    </div>
+                </header>
+                <div class="ejec-progress-bar"><div id="checklist-progress-bar" class="ejec-progress-bar-fill"></div></div>
+                <div class="ejec-card-body" id="c4-content" style="padding-top:0.5rem;">
+                    <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 0.6rem;">Marque cada paso del checklist como completado. Suba fotos o audios de evidencia con el botón <i class="fas fa-plus-circle"></i>. Los servicios se pueden marcar como <em>imprevistos</em> al agregarlos.</p>
+                    <div id="checklist-list"></div>
+                </div>
+            </div>
+
+            <!-- C5: REPUESTOS (consolidado: checklist + solicitudes almacén) -->
+            <div class="ejec-card collapsible-card" id="section-c5">
+                <header class="ejec-card-head collapsible-header" data-target="c5-content">
+                    <span><span class="nav-icon-box icon-boxes"><i class="fas fa-boxes-stacked"></i></span> Repuestos</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c5-content">
+                    <!-- Sub-sección: Repuestos del Trabajo (items tipo=repuesto del checklist) -->
+                    <div class="c5-subsection" id="c5-repuestos-checklist">
+                        <h4 class="c5-subtitle"><i class="fas fa-cog"></i> Repuestos del Trabajo
+                            <button class="btn btn-sm btn-accent" id="btn-agregar-repuesto-item" style="margin-left:auto;"><i class="fas fa-plus-circle"></i> Agregar Repuesto</button>
+                        </h4>
+                        <div id="repuestos-checklist-list"></div>
+                    </div>
+                    <!-- Sub-sección: Solicitudes al Almacén -->
+                    <div class="c5-subsection" id="c5-solicitudes-almacen">
+                        <h4 class="c5-subtitle"><i class="fas fa-warehouse"></i> Solicitudes al Almacén</h4>
+                        <div class="repuestos-form">
+                            <div class="repuestos-form-row">
+                                <label>Tipo
+                                    <select id="repuesto-tipo">
+                                        <option value="articulo">Artículo</option>
+                                        <option value="insumo">Insumo</option>
+                                    </select>
+                                </label>
+                                <label class="grow">Buscar
+                                    <input type="text" id="repuesto-buscar" placeholder="Buscar artículo…" autocomplete="off">
+                                    <div id="repuesto-resultados" class="repuesto-resultados"></div>
+                                </label>
+                                <label>Cantidad
+                                    <input type="number" id="repuesto-cantidad" value="1" min="1">
+                                </label>
+                                <label class="grow">Observación
+                                    <input type="text" id="repuesto-observacion" placeholder="Detalle / nota…">
+                                </label>
+                                <button class="btn btn-sm btn-primary" id="btn-solicitar-repuesto"><i class="fas fa-paper-plane"></i> Solicitar</button>
+                            </div>
+                            <div class="repuestos-foto-row">
+                                <label class="foto-label"><i class="fas fa-camera"></i> Foto del repuesto
+                                    <input type="file" id="repuesto-foto" accept="image/*">
+                                </label>
+                                <button class="btn btn-sm btn-outline" id="btn-crear-oc"><span class="nav-icon-box icon-file"><i class="fas fa-file-invoice"></i></span> Crear OC</button>
+                            </div>
+                        </div>
+                        <table class="repuestos-tabla">
+                            <thead>
+                                <tr>
+                                    <th>Artículo / Insumo</th>
+                                    <th class="num">Cant.</th>
+                                    <th>Estado</th>
+                                    <th>Solicitado por</th>
+                                    <th>Foto</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repuestos-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- C6: ETAPAS / TIMELINE — hidden, replaced by interactive checklist -->
+            <div class="ejec-card collapsible-card" id="section-c6" style="display:none">
+                <header class="ejec-card-head collapsible-header" data-target="c6-content">
+                    <span><i class="fas fa-project-diagram"></i> Etapas del Trabajo</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c6-content">
+                    <div class="timeline-controls">
+                        <input type="text" id="etapa-nombre" placeholder="Nombre de la etapa…" class="timeline-input">
+                        <button class="btn btn-sm btn-primary" id="btn-agregar-etapa"><i class="fas fa-plus"></i> Agregar Etapa</button>
+                    </div>
+                    <div id="timeline-container"></div>
+                    <div id="etapas-list"></div>
+                </div>
+            </div>
+
+            <!-- C7: APOYO TÉCNICO (collapsible) -->
+            <div class="ejec-card collapsible-card" id="section-c7">
+                <header class="ejec-card-head collapsible-header" data-target="c7-content">
+                    <span><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span> Apoyo Técnico</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c7-content"></div>
+            </div>
+
+            <!-- C8: DIAGNÓSTICO (collapsible) -->
+            <div class="ejec-card collapsible-card" id="section-c8">
+                <header class="ejec-card-head collapsible-header" data-target="c8-content">
+                    <span><i class="fas fa-stethoscope"></i> Diagnóstico Final</span>
+                    <i class="fas fa-chevron-down"></i>
+                </header>
+                <div class="ejec-card-body collapsible-body collapsed" id="c8-content">
+                    <div class="diag-grid">
+                        <div class="diag-field">
+                            <label class="diag-label">Causa Raíz</label>
+                            <textarea id="diag-causa" rows="2" placeholder="Describa la causa raíz del problema…"></textarea>
+                        </div>
+                        <div class="diag-field">
+                            <label class="diag-label">Diagnóstico Final</label>
+                            <textarea id="diag-final" rows="3" placeholder="Diagnóstico detallado…"></textarea>
+                        </div>
+                        <div class="diag-field">
+                            <label class="diag-label">Recomendaciones</label>
+                            <textarea id="diag-recom" rows="2" placeholder="Recomendaciones para el cliente…"></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="btn-guardar-diagnostico"><i class="fas fa-save"></i> Guardar Diagnóstico</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- C10: CLIENTE — Comunicación y portal -->
+            <div class="ejec-card" id="section-c10">
+                <header class="ejec-card-head">
+                    <span><i class="fas fa-user-group"></i> Cliente — Comunicación</span>
+                    <div class="ejec-card-head-right">
+                        <span id="cliente-comentarios-badge" class="ejec-badge" style="display:none;background:var(--danger);color:#fff;">0</span>
+                        <a href="portal.html?ot=" id="btn-ver-portal" target="_blank" class="btn btn-sm btn-outline" style="display:none;"><i class="fas fa-external-link-alt"></i> Ver Portal</a>
+                    </div>
+                </header>
+                <div class="ejec-card-body" id="c10-content">
+                    <p style="font-size:0.82rem;color:var(--text-secondary);margin:0 0 0.8rem;">
+                        <i class="fas fa-info-circle"></i> Comunicación directa con el cliente. Los comentarios del cliente aparecen aquí. Responda para mantener al cliente informado.
+                    </p>
+                    <!-- Chat del cliente -->
+                    <div style="display:flex;flex-direction:column;height:380px;border:1px solid var(--border-color);border-radius:10px;overflow:hidden;">
+                        <div id="c10-chat-messages" style="flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:10px;">
+                            <div style="text-align:center;color:var(--text-tertiary);padding:2rem;"><i class="fas fa-comments" style="font-size:1.5rem;margin-bottom:0.5rem;display:block;"></i>Cargando conversación...</div>
+                        </div>
+                        <div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border-color);background:var(--bg-card);">
+                            <input type="text" id="c10-chat-input" placeholder="Escriba un mensaje para el cliente..." autocomplete="off" style="flex:1;padding:8px 12px;border:1.5px solid var(--border-color);border-radius:20px;font-size:0.85rem;font-family:var(--font);outline:none;">
+                            <button class="btn btn-sm btn-primary" id="c10-btn-send" style="border-radius:20px;"><i class="fas fa-paper-plane"></i> Enviar</button>
+                        </div>
+                    </div>
+                    <!-- Avances recientes del cliente -->
+                    <div style="margin-top:1rem;">
+                        <h4 style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;"><i class="fas fa-chart-line"></i> Últimos Avances Publicados</h4>
+                        <div id="c10-avances"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- C9: NOTAS + AUDIO (siempre visible) -->
+            <div class="ejec-card" id="section-c9">
+                <header class="ejec-card-head">
+                    <span><i class="fas fa-sticky-note"></i> Notas y Observaciones</span>
+                    <div class="ejec-card-head-right">
+                        <button class="btn btn-sm btn-outline" id="btn-grabar-nota"><i class="fas fa-microphone"></i> <span id="btn-grabar-texto">Grabar Audio</span></button>
+                        <input type="file" id="input-nota-voz" accept="audio/*" style="display:none;">
+                        <button class="btn btn-sm btn-outline" id="btn-subir-nota-voz" style="display:none;"><i class="fas fa-upload"></i> Subir Audio</button>
+                    </div>
+                </header>
+                <div class="ejec-card-body" id="c9-content">
+                    <textarea id="notas-libres" rows="3" placeholder="Notas adicionales, observaciones, comentarios del trabajo…" style="width:100%;padding:0.5rem;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);resize:vertical;font-family:inherit;"></textarea>
+                    <div id="recorder-bar" class="recorder-bar" style="display:none;">
+                        <span class="recorder-indicator"></span>
+                        <span class="recorder-timer" id="recorder-timer">00:00</span>
+                        <button class="btn btn-sm btn-danger" id="btn-detener-grabacion"><i class="fas fa-stop"></i> Detener</button>
+                        <button class="btn btn-sm btn-primary" id="btn-enviar-grabacion" style="display:none;"><i class="fas fa-upload"></i> Enviar</button>
+                    </div>
+                    <div id="audios-list" class="audios-list"></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Modal: Agregar Servicio -->
+    <div class="modal" id="servicio-modal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Agregar Servicio</h3>
+                <button class="modal-close" onclick="closeModal('servicio-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted">Seleccione un servicio para agregar al checklist. Si es imprevisto, se marca automáticamente.</p>
+                <div class="form-group">
+                    <label>Buscar servicio</label>
+                    <input type="text" id="servicio-buscar" placeholder="Escriba para filtrar…" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Servicio seleccionado</label>
+                    <select id="servicio-select"></select>
+                </div>
+                <div class="form-check">
+                    <label><input type="checkbox" id="servicio-imprevisto"> Marcar como imprevisto ($0)</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('servicio-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirmar-servicio"><i class="fas fa-check"></i> Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Repuesto a Items -->
+    <div class="modal" id="repuesto-item-modal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Agregar Repuesto</h3>
+                <button class="modal-close" onclick="closeModal('repuesto-item-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted">Agregue un repuesto directo al checklist de la OT.</p>
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="repitem-tipo">
+                        <option value="repuesto_taller">Repuesto Taller</option>
+                        <option value="repuesto_cliente">Repuesto del Cliente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del repuesto</label>
+                    <input type="text" id="repitem-nombre" placeholder="Ej: Filtro de aceite" autocomplete="off">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cantidad</label>
+                        <input type="number" id="repitem-cantidad" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Valor unitario ($)</label>
+                        <input type="number" id="repitem-valor" value="0" min="0">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('repuesto-item-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirmar-repuesto-item"><i class="fas fa-check"></i> Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Foto Item -->
+    <div class="modal" id="foto-item-modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Agregar Foto</h3>
+                <button class="modal-close" onclick="closeModal('foto-item-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="foto-item-input" accept="image/*" capture="environment">
+                <div id="foto-item-preview" style="margin-top:0.5rem;max-width:100%;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('foto-item-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirmar-foto-item"><i class="fas fa-upload"></i> Subir Foto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Servicio Rápido -->
+    <div class="modal" id="servicio-rapido-modal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><span class="nav-icon-box icon-bolt"><i class="fas fa-bolt"></i></span> Servicio Rápido</h3>
+                <button class="modal-close" onclick="closeModal('servicio-rapido-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="muted">Agregue un servicio nuevo sin precio. El administrador definirá el precio al presupuestar.</p>
+                <div class="form-group">
+                    <label>Nombre del servicio *</label>
+                    <input type="text" id="sr-nombre" placeholder="Ej: Cambio de correa tensora" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="sr-descripcion" rows="2" placeholder="Detalle breve del trabajo…"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pasos del procedimiento</label>
+                    <div id="sr-pasos-list" class="sr-pasos-list"></div>
+                    <div class="sr-paso-add">
+                        <input type="text" id="sr-paso-input" placeholder="Agregar paso…" autocomplete="off">
+                        <button class="btn btn-sm btn-accent" id="btn-sr-add-paso"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('servicio-rapido-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirmar-servicio-rapido"><i class="fas fa-check"></i> Agregar Servicio</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+        <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+        <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+        <a href="ejecucion_ot.html" class="bottom-nav-item"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span><span>Ejecución</span></a>
+        <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+        <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+    </div>
+</nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/ejecucion_ot.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

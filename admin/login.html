@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión — Figuetronic ERP</title>
+    <link rel="stylesheet" href="css/tokens.css?v=20260712">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+            padding: 40px 32px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin: 0 auto 16px;
+            display: block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .login-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 15px;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--text-primary);
+            background: var(--bg-input);
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255,59,48,.12);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 15px;
+        }
+
+        .toggle-password:hover { color: var(--text-primary); }
+
+        .error-message {
+            display: none;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #B91C1C;
+            line-height: 1.4;
+        }
+
+        .error-message i {
+            margin-right: 6px;
+        }
+
+        .error-message.visible { display: flex; align-items: center; }
+
+        .btn-login {
+            width: 100%;
+            padding: 13px 20px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, transform .1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-login:hover { background: var(--primary-hover); }
+        .btn-login:active { transform: scale(0.98); }
+        .btn-login:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .btn-login .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+        }
+
+        .btn-login.loading .spinner { display: block; }
+        .btn-login.loading .btn-text { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Portal link */
+        .portal-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .portal-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .portal-link a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 28px 20px; }
+        }
+
+        /* Accessibility */
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .form-input:focus-visible {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="https://figuetronic.cl/LOGO1.jpeg" alt="Figuetronic" class="login-logo">
+                <h1 class="login-title">Figuetronic ERP</h1>
+                <p class="login-subtitle">Inicie sesión para continuar</p>
+            </div>
+
+            <div class="error-message" id="errorMsg">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <form id="loginForm" autocomplete="on">
+                <div class="form-group">
+                    <label class="form-label" for="username">Usuario</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" class="form-input"
+                               placeholder="Ingrese su usuario" autocomplete="username" autofocus required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" class="form-input"
+                               placeholder="Ingrese su contraseña" autocomplete="current-password" required>
+                        <button type="button" class="toggle-password" id="togglePassword" title="Mostrar contraseña">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="btnLogin">
+                    <div class="spinner"></div>
+                    <span class="btn-text"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</span>
+                </button>
+            </form>
+
+            <div class="portal-link">
+                <a href="portal.html">Portal de Cliente →</a>
+            </div>
+            <div class="portal-link" style="margin-top:8px;">
+                <a href="registro.html" style="color:var(--text-secondary);font-weight:400;font-size:12px;">¿No tienes cuenta? Solicita acceso</a>
+            </div>
+        </div>
+
+        <div class="login-footer">
+            © 2026 Figuetronic SpA — Laboratory Engineering
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        const API = '/admin/api/auth_api.php';
+        const form = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const errorText = document.getElementById('errorText');
+        const btnLogin = document.getElementById('btnLogin');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        // Show/hide password
+        togglePassword.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        });
+
+        // Submit login
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showError('');
+            setLoading(true);
+
+            const username = document.getElementById('username').value.trim();
+            const password = passwordInput.value;
+
+            try {
+                const res = await fetch(API + '?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Redirect based on user type
+                    const user = data.data;
+                    if (user.tipo === 'cliente') {
+                        window.location.href = 'portal.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    showError(data.message || 'Error al iniciar sesión.');
+                    setLoading(false);
+                }
+            } catch (err) {
+                showError('Error de conexión. Verifique su acceso a internet.');
+                setLoading(false);
+            }
+        });
+
+        function showError(msg) {
+            if (msg) {
+                errorText.textContent = msg;
+                errorMsg.classList.add('visible');
+                document.getElementById('username').classList.add('error');
+                document.getElementById('password').classList.add('error');
+            } else {
+                errorMsg.classList.remove('visible');
+                document.getElementById('username').classList.remove('error');
+                document.getElementById('password').classList.remove('error');
+            }
+        }
+
+        function setLoading(loading) {
+            btnLogin.disabled = loading;
+            btnLogin.classList.toggle('loading', loading);
+        }
+
+        // Check if already logged in
+        fetch(API + '?action=me').then(r => r.json()).then(d => {
+            if (d.status === 'success') {
+                const user = d.data;
+                if (user.tipo === 'cliente') {
+                    window.location.href = 'portal.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        }).catch(() => {});
+    })();
+    </script>
+</body>
+</html>

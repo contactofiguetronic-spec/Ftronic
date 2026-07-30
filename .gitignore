@@ -1,0 +1,82 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Uploads (datos de usuario)
+admin/uploads/
+public_html/uploads/
+
+# Temporary files
+*.pyc
+*.tmp
+*.temp
+
+# Node modules (in case)
+node_modules/
+
+# Python pycache
+__pycache__/
+*.py[cod]
+
+# Backup files
+*.bak
+*~
+
+# Editor backup files
+*~
+*.swp
+*.swo
+
+# Intellij IDEA
+/.idea/
+*.iml
+
+# Visual Studio Code
+.vscode/
+
+# npm package lock file
+package-lock.json
+
+# PHP logs
+error_log
+
+# Coverage
+.coverage
+.nyc_output/
+
+# Build output
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+
+# Heapsnapshot files
+*.heapsnapshot
+
+# Local environment config
+config.local.php
+.env.php
+includes/env.local.php
+
+# FTP upload logs
+upload.log
+
+# Tool artifacts
+.codegraph/
+.omo/
+Questions/

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehículos - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ── Vehicle Silhouette Grid ────────────────────────────────── */
+        .silhouette-grid { display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:auto auto; gap:0.5rem; max-width:500px; margin:0 auto; }
+        .silhouette-slot { position:relative; border-radius:var(--radius-md); overflow:hidden; aspect-ratio:4/3; background:var(--card-bg); border:2px solid var(--border-color); cursor:pointer; transition:var(--transition); }
+        .silhouette-slot:hover { border-color:var(--primary); transform:scale(1.02); }
+        .silhouette-slot img { width:100%; height:100%; object-fit:cover; }
+        .silhouette-slot .slot-label { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,0.8)); color:white; font-size:0.65rem; font-weight:600; padding:0.3rem 0.5rem; text-transform:uppercase; letter-spacing:0.5px; }
+        .silhouette-slot.empty { border-style:dashed; display:flex; align-items:center; justify-content:center; flex-direction:column; color:var(--text-secondary); }
+        .silhouette-slot.empty i { font-size:1.5rem; margin-bottom:0.3rem; }
+        .silhouette-slot.empty span { font-size:0.7rem; }
+        .silhouette-top { grid-column:1/4; }
+        .silhouette-left { grid-column:1/2; }
+        .silhouette-center { grid-column:2/3; }
+        .silhouette-right { grid-column:3/4; }
+        .silhouette-bottom { grid-column:1/4; }
+        .silhouette-extra { grid-column:1/4; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; }
+
+        @media(max-width:768px) {
+            .silhouette-grid { grid-template-columns:1fr 1fr; }
+            .silhouette-top { grid-column:1/3; }
+            .silhouette-bottom { grid-column:1/3; }
+            .silhouette-extra { grid-column:1/3; }
+        }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><i class="fas fa-car"></i> Vehículos</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por patente, marca o modelo...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo" data-perm="vehiculos:crear"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">VH</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-accent" id="btnFichaPdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-danger" id="btnFichaDelete" data-perm="vehiculos:eliminar"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><i class="fas fa-car"></i> Datos</div>
+                <div class="ficha-tab" data-tab="recepciones"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepciones <span class="tab-badge" id="badgeRecep">0</span></div>
+                <div class="ficha-tab" data-tab="trabajos"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span> Trabajos <span class="tab-badge" id="badgeTrab">0</span></div>
+                <div class="ficha-tab" data-tab="multimedia"><i class="fas fa-photo-video"></i> Multimedia</div>
+                <div class="ficha-tab" data-tab="apoyo_tecnico"><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span> Apoyo Técnico</div>
+                <div class="ficha-tab" data-tab="notas"><i class="fas fa-sticky-note"></i> Notas</div>
+            </div>
+
+            <!-- Tab: Datos -->
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Propietario</label><select id="cliente_id" name="cliente_id" data-linked="clientes"><option value="">— Seleccione —</option></select></div>
+                        <div class="form-group"><label>Marca</label><div class="select-wrapper"><select id="marca" name="marca" data-category="marca_vehiculo"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Modelo</label><input type="text" id="modelo" name="modelo" placeholder="Corolla"></div>
+                        <div class="form-group"><label>Año</label><input type="number" step="any" id="anio" name="anio" placeholder="2024"></div>
+                        <div class="form-group"><label>Patente</label><input type="text" id="patente" name="patente" placeholder="AA-BB-12"></div>
+                        <div class="form-group"><label>VIN / Chasis</label><input type="text" id="vin" name="vin" placeholder="17 caracteres"></div>
+                        <div class="form-group"><label>Color</label><div class="select-wrapper"><select id="color" name="color" data-category="color_vehiculo"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Combustible</label><div class="select-wrapper"><select id="combustible" name="combustible" data-category="combustible"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Kilometraje</label><input type="number" id="kilometraje" name="kilometraje" placeholder="0"></div>
+                        <div class="form-group"><label>Cilindrada</label><input type="text" id="cilindrada_motor" name="cilindrada_motor" placeholder="1.6L"></div>
+                        <div class="form-group"><label>Transmisión</label><div class="select-wrapper"><select id="transmision" name="transmision" data-category="transmision"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Tracción</label><div class="select-wrapper"><select id="traccion" name="traccion" data-category="traccion"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Carrocería</label><div class="select-wrapper"><select id="tipo_carroceria" name="tipo_carroceria" data-category="tipo_carroceria"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Procedencia</label><div class="select-wrapper"><select id="procedencia" name="procedencia" data-category="procedencia"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Diseño Estructural</label><div class="select-wrapper"><select id="disenoestructural" name="disenoestructural" data-category="diseno_estructural"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group full-width"><label>Notas Técnicas</label><textarea id="notas_tecnico" name="notas_tecnico" rows="3" placeholder="Información técnica general del vehículo..."></textarea></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Recepciones -->
+            <div class="ficha-panel" id="tabRecepciones">
+                <div id="recepcionesList"></div>
+            </div>
+
+            <!-- Tab: Trabajos -->
+            <div class="ficha-panel" id="tabTrabajos">
+                <div id="trabajosList"></div>
+            </div>
+
+            <!-- Tab: Multimedia -->
+            <div class="ficha-panel" id="tabMultimedia">
+                <div class="multimedia-area">
+                    <h3><i class="fas fa-photo-video"></i> Archivos del Vehículo</h3>
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos aquí (imágenes, videos, PDFs, manuales...)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Apoyo Técnico (multimedia específica del vehículo) -->
+            <div class="ficha-panel" id="tabApoyo_tecnico">
+                <div class="multimedia-area">
+                    <h3><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span> Apoyo Técnico — Archivos de esta Unidad</h3>
+                    <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.75rem;">Documentos, diagramas, manuales y recursos específicos para este vehículo.</p>
+                    <div id="apoyoTechMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos de apoyo técnico:</p>
+                        <div class="existing-media-grid" id="apoyoTechMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="apoyoTechToolbar"></div>
+                    <div class="upload-zone compact" id="apoyoTechUploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos de apoyo técnico (diagramas, manuales, fotos...)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Notas -->
+            <div class="ficha-panel" id="tabNotas">
+                <div style="margin-bottom:1rem;">
+                    <button class="btn btn-primary" id="btnAddNota"><i class="fas fa-plus"></i> Nueva Nota</button>
+                </div>
+                <div id="notasList"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Nueva Nota -->
+    <div class="modal-overlay" id="notaModal" style="display:none;">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-sticky-note"></i> <span id="notaModalTitle">Nueva Nota</span></h3>
+                <button class="modal-close" onclick="document.getElementById('notaModal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="nota_id">
+                <div class="form-group"><label>Título</label><input type="text" id="nota_titulo" placeholder="Ej: Distribución de encendido"></div>
+                <div class="form-group"><label>Categoría</label>
+                    <select id="nota_categoria">
+                        <option value="general">General</option>
+                        <option value="apoyo_tecnico">Apoyo Técnico</option>
+                        <option value="distribucion">Distribución</option>
+                        <option value="puesta_a_punto">Puesta a Punto</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Contenido</label><textarea id="nota_contenido" rows="6" placeholder="Detalle técnico..."></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('notaModal').style.display='none'">Cancelar</button>
+                <button class="btn btn-primary" id="btnSaveNota"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ver Imagen -->
+    <div class="modal-overlay" id="imgModal" style="display:none;" onclick="this.style.display='none'">
+        <div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">
+            <img id="imgModalSrc" style="max-width:100%;max-height:90vh;border-radius:var(--radius-md);">
+        </div>
+    </div>
+
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/vehiculos.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

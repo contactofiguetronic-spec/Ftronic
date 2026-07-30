@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260714020000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260714020000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-subtle);margin-bottom:24px;overflow-x:auto}
+        .admin-tab{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:.88rem;font-weight:600;color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all .15s}
+        .admin-tab:hover{color:var(--primary);background:rgba(75,123,236,.04)}
+        .admin-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        .admin-panel{display:none;padding:0 0 24px}
+        .admin-panel.active{display:block}
+        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+        .kpi-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;display:flex;align-items:center;gap:16px;transition:box-shadow .15s}
+        .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+        .kpi-number{font-size:1.8rem;font-weight:800;color:var(--text-primary);line-height:1}
+        .kpi-label{font-size:.78rem;color:var(--text-secondary);margin-top:4px}
+        .kpi-icon{width:48px;height:48px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+        .role-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;cursor:pointer;transition:all .2s ease;position:relative;overflow:hidden}
+        .role-card:hover{border-color:var(--primary);box-shadow:0 4px 12px rgba(75,123,236,.12);transform:translateY(-1px)}
+        .role-card.selected{border-color:var(--primary);background:rgba(75,123,236,.04)}
+        .perm-matrix{width:100%;border-collapse:collapse;font-size:.82rem}
+        .perm-matrix th{padding:8px 12px;text-align:left;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border-subtle);position:sticky;top:0;background:var(--bg-card);z-index:1}
+        .perm-matrix td{padding:6px 12px;border-bottom:1px solid var(--border-subtle)}
+        .perm-matrix tr:hover{background:rgba(75,123,236,.03)}
+        .perm-matrix input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+        .config-section{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;margin-bottom:16px}
+        .config-section h3{font-size:.92rem;font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+        .activity-log{max-height:400px;overflow-y:auto}
+        .activity-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle)}
+        .activity-item:last-child{border-bottom:none}
+        .activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+        .activity-text{font-size:.82rem;line-height:1.4}
+        .activity-time{font-size:.72rem;color:var(--text-secondary);white-space:nowrap}
+        .session-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle)}
+        .session-row:last-child{border-bottom:none}
+        .session-ip{font-size:.75rem;color:var(--text-secondary)}
+        .perm-source-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600}
+        .perm-source-role{background:#dbeafe;color:#1d4ed8}
+        .perm-source-override{background:#fef3c7;color:#92400e}
+        .perm-source-effective{background:#d1fae5;color:#065f46}
+        .perm-module-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:all .15s}
+        .perm-module-header:hover{border-color:var(--primary)}
+        .perm-module-header h4{margin:0;font-size:.85rem;display:flex;align-items:center;gap:8px}
+        .perm-module-count{font-size:.72rem;color:var(--text-secondary);background:var(--border-subtle);padding:2px 8px;border-radius:10px}
+        .perm-items{padding:8px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-bottom:12px}
+        .perm-item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-size:.8rem;transition:background .1s}
+        .perm-item:hover{background:rgba(75,123,236,.05)}
+        .perm-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
+        .perm-item.disabled{opacity:.5;pointer-events:none}
+        .perm-item .perm-label{flex:1}
+        .perm-item .perm-src{font-size:.65rem;padding:1px 5px;border-radius:8px;font-weight:600}
+        .usr-list-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
+        .usr-list-card:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(75,123,236,.1)}
+        .usr-list-card.selected{border-color:var(--primary);background:rgba(75,123,236,.04)}
+        .usr-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0}
+        .usr-info{flex:1;min-width:0}
+        .usr-name{font-weight:600;font-size:.88rem}
+        .usr-meta{font-size:.75rem;color:var(--text-secondary)}
+        .usr-role-badge{font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap}
+        .usr-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+        .help-panel{background:linear-gradient(135deg,rgba(75,123,236,.06),rgba(75,123,236,.02));border:1px solid rgba(75,123,236,.15);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;font-size:.82rem;line-height:1.6;color:var(--text-secondary)}
+        .help-panel h4{margin:0 0 8px;color:var(--text-primary);font-size:.88rem;display:flex;align-items:center;gap:6px}
+        .help-panel ul{margin:4px 0;padding-left:18px}
+        .help-panel code{background:rgba(75,123,236,.1);padding:1px 5px;border-radius:4px;font-size:.78rem}
+        @media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.perm-items{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-shield"><i class="fas fa-shield-halved"></i></span> Panel de Administración</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar"><i class="fas fa-search"></i></button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- TABS -->
+        <div class="admin-tabs" id="adminTabs">
+            <button class="admin-tab active" data-tab="tabResumen"><i class="fas fa-chart-pie"></i> Dashboard</button>
+            <button class="admin-tab" data-tab="tabUsuarios"><i class="fas fa-users-gear"></i> Usuarios</button>
+            <button class="admin-tab" data-tab="tabRoles"><i class="fas fa-shield-halved"></i> Roles</button>
+            <button class="admin-tab" data-tab="tabAuditoria"><i class="fas fa-clock-rotate-left"></i> Auditoría</button>
+            <button class="admin-tab" data-tab="tabConfig"><i class="fas fa-gear"></i> Configuración</button>
+        </div>
+
+        <!-- ═══ TAB: DASHBOARD ═══ -->
+        <div class="admin-panel active" id="tabResumen">
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-icon" style="background:rgba(34,197,94,.12);color:#16a34a;"><i class="fas fa-user-check"></i></div><div><div class="kpi-number" id="kpiActivos">—</div><div class="kpi-label">Usuarios Activos</div></div></div>
+                <div class="kpi-card"><div class="kpi-icon" style="background:rgba(75,123,236,.12);color:#4b7bec;"><i class="fas fa-right-to-bracket"></i></div><div><div class="kpi-number" id="kpiLogins">—</div><div class="kpi-label">Logins Hoy</div></div></div>
+                <div class="kpi-card"><div class="kpi-icon" style="background:rgba(245,158,11,.12);color:#d97706;"><i class="fas fa-desktop"></i></div><div><div class="kpi-number" id="kpiSesiones">—</div><div class="kpi-label">Sesiones Activas</div></div></div>
+                <div class="kpi-card"><div class="kpi-icon" style="background:rgba(239,68,68,.12);color:#dc2626;"><i class="fas fa-user-lock"></i></div><div><div class="kpi-number" id="kpiBloqueados">—</div><div class="kpi-label">Bloqueados</div></div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="config-section"><h3><i class="fas fa-clock-rotate-left"></i> Actividad Reciente</h3><div id="activityList" class="activity-log"><div style="padding:20px;text-align:center;color:var(--text-secondary);">Cargando...</div></div></div>
+                <div class="config-section"><h3><i class="fas fa-desktop"></i> Sesiones Activas</h3><div id="sessionsList"><div style="padding:20px;text-align:center;color:var(--text-secondary);">Cargando...</div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ TAB: USUARIOS ═══ -->
+        <div class="admin-panel" id="tabUsuarios">
+            <div class="help-panel">
+                <h4><i class="fas fa-lightbulb"></i> Gestión de Usuarios</h4>
+                <p>Seleccione un usuario de la lista para ver sus datos, cuenta y permisos. Los permisos se calculan automáticamente:</p>
+                <ul>
+                    <li><strong>Sin override:</strong> El usuario hereda los permisos de su rol asignado.</li>
+                    <li><strong>Con override:</strong> Los permisos personalizados reemplazan completamente los del rol.</li>
+                    <li>Use <code>Restaurar al Rol</code> para eliminar el override y volver a los permisos del rol.</li>
+                </ul>
+            </div>
+            <div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;">
+                <!-- Lista de usuarios -->
+                <div>
+                    <div style="margin-bottom:12px;display:flex;gap:8px;">
+                        <div style="flex:1;position:relative;">
+                            <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:.8rem;"></i>
+                            <input type="text" id="usrSearch" placeholder="Buscar usuario..." style="width:100%;padding-left:32px;">
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="btnNuevoUsr" title="Crear nuevo usuario"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div id="usrList" style="max-height:calc(100vh - 280px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+                    <div id="usrPagination" style="margin-top:8px;"></div>
+                </div>
+                <!-- Detalle del usuario -->
+                <div id="usrDetail" style="display:none;">
+                    <div class="config-section" style="margin-bottom:0;padding-bottom:0;">
+                        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                            <div class="usr-avatar" id="detailAvatar" style="width:56px;height:56px;font-size:1.2rem;">UU</div>
+                            <div style="flex:1;">
+                                <div style="font-size:1.1rem;font-weight:700;" id="detailName">—</div>
+                                <div style="font-size:.82rem;color:var(--text-secondary);" id="detailMeta">—</div>
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-sm btn-secondary" id="btnDetailBack"><i class="fas fa-times"></i></button>
+                                <button class="btn btn-sm btn-danger" id="btnDetailDelete" data-perm="usuarios:eliminar"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <!-- Sub-tabs internas -->
+                        <div style="display:flex;gap:0;border-bottom:2px solid var(--border-subtle);margin-bottom:16px;">
+                            <button class="admin-tab active" data-stab="stabDatos"><i class="fas fa-user"></i> Datos</button>
+                            <button class="admin-tab" data-stab="stabCuenta"><i class="fas fa-key"></i> Cuenta</button>
+                            <button class="admin-tab" data-stab="stabPerms"><i class="fas fa-shield-halved"></i> Permisos</button>
+                        </div>
+                        <!-- Datos -->
+                        <div class="admin-panel active" id="stabDatos">
+                            <form id="formDatos">
+                                <input type="hidden" name="id" id="fld_id">
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" id="fld_nombre" required></div>
+                                    <div class="form-group"><label>Apellido</label><input type="text" name="apellido" id="fld_apellido"></div>
+                                    <div class="form-group"><label>Email</label><input type="email" name="email" id="fld_email"></div>
+                                    <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" id="fld_telefono"></div>
+                                    <div class="form-group"><label>Tipo *</label><select name="tipo" id="fld_tipo"><option value="empleado">Empleado</option><option value="cliente">Cliente</option><option value="admin">Administrador</option></select></div>
+                                </div>
+                                <div class="actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Datos</button></div>
+                            </form>
+                        </div>
+                        <!-- Cuenta -->
+                        <div class="admin-panel" id="stabCuenta">
+                            <form id="formCuenta">
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Username *</label><input type="text" name="username" id="fld_username" required autocomplete="off"></div>
+                                    <div class="form-group"><label>Contraseña</label><input type="password" name="password" id="fld_password" autocomplete="new-password"><small style="color:var(--text-secondary);">Dejar vacío para no cambiar</small></div>
+                                    <div class="form-group"><label>Rol asignado</label><select name="rol_id" id="fld_rol"><option value="">— Sin rol —</option></select></div>
+                                    <div class="form-group"><label>Estado</label><select name="activo" id="fld_activo"><option value="1">Activo</option><option value="0">Inactivo</option></select></div>
+                                </div>
+                                <div class="actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cuenta</button></div>
+                            </form>
+                        </div>
+                        <!-- Permisos -->
+                        <div class="admin-panel" id="stabPerms">
+                            <div id="permSourceInfo" style="margin-bottom:12px;padding:10px 14px;border-radius:8px;font-size:.8rem;display:flex;align-items:flex-start;gap:8px;"></div>
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                                <label style="font-weight:600;font-size:.85rem;">Aplicar rol:</label>
+                                <select id="permRolePreset" style="min-width:160px;font-size:.82rem;"><option value="">— Personalizar —</option></select>
+                                <button class="btn btn-sm btn-secondary" id="btnApplyRole"><i class="fas fa-check"></i> Aplicar</button>
+                                <div style="flex:1;"></div>
+                                <span id="permCount" style="font-size:.78rem;color:var(--text-secondary);"></span>
+                                <button class="btn btn-sm btn-secondary" id="btnResetRole"><i class="fas fa-rotate-left"></i> Restaurar al Rol</button>
+                                <button class="btn btn-sm btn-primary" id="btnSavePerms"><i class="fas fa-save"></i> Guardar</button>
+                            </div>
+                            <div id="permGrid" style="max-height:400px;overflow-y:auto;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:8px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Empty state -->
+                <div id="usrEmpty" class="config-section" style="text-align:center;padding:60px 20px;">
+                    <i class="fas fa-users-gear" style="font-size:3rem;opacity:.15;margin-bottom:12px;display:block;"></i>
+                    <div style="color:var(--text-secondary);">Seleccione un usuario de la lista para gestionar sus datos, cuenta y permisos.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ TAB: ROLES ═══ -->
+        <div class="admin-panel" id="tabRoles">
+            <div class="help-panel">
+                <h4><i class="fas fa-lightbulb"></i> Gestión de Roles</h4>
+                <p>Los roles definen el conjunto base de permisos. Cada usuario tiene un rol asignado que determina sus permisos por defecto.</p>
+                <ul>
+                    <li><strong>Nivel 1-2:</strong> Acceso total al sistema (Admin/Gerente).</li>
+                    <li><strong>Nivel 3-5:</strong> Acceso según permisos del rol.</li>
+                    <li><strong>Nivel 6:</strong> Solo consulta (lectura).</li>
+                </ul>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <div><h2 style="font-size:1rem;font-weight:700;margin:0;">Roles del Sistema</h2><p style="font-size:.82rem;color:var(--text-secondary);margin:4px 0 0;">Clic en un rol para editar sus permisos</p></div>
+                <button class="btn btn-primary" id="btnNuevoRol"><i class="fas fa-plus"></i> Nuevo Rol</button>
+            </div>
+            <div class="card-grid" id="rolesGrid"></div>
+            <!-- Role Editor -->
+            <div id="roleEditor" style="display:none;margin-top:24px;">
+                <div class="config-section" style="border-left:3px solid var(--primary);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                        <h3 id="roleEditorTitle" style="margin:0;display:flex;align-items:center;gap:8px;"><i class="fas fa-pen-to-square" style="color:var(--primary);"></i> Editar Rol</h3>
+                        <button class="btn btn-sm btn-secondary" id="btnCloseRoleEditor"><i class="fas fa-times"></i> Cerrar</button>
+                    </div>
+                    <input type="hidden" id="rolId">
+                    <div class="form-grid" style="margin-bottom:16px;">
+                        <div class="form-group"><label>Nombre del Rol *</label><input type="text" id="rolNombre" required></div>
+                        <div class="form-group"><label>Nivel de Acceso</label><select id="rolNivel"><option value="1">1 — Super Admin</option><option value="2">2 — Admin</option><option value="3" selected>3 — Gerente</option><option value="4">4 — Supervisor</option><option value="5">5 — Operador</option><option value="6">6 — Solo lectura</option></select><small style="color:var(--text-secondary);font-size:.75rem;">Niveles 1-2: acceso total. Nivel 6: solo consulta.</small></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;"><label>Descripción</label><textarea id="rolDescripcion" rows="2" style="width:100%;resize:vertical;"></textarea></div>
+                    <div style="margin-bottom:16px;">
+                        <label style="font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.88rem;"><i class="fas fa-key" style="color:var(--primary);"></i> Matriz de Permisos</label>
+                        <div style="padding:8px 12px;background:var(--primary-light);border-radius:6px;font-size:.78rem;color:var(--text-secondary);margin-bottom:10px;display:flex;align-items:flex-start;gap:6px;"><i class="fas fa-lightbulb" style="color:var(--primary);margin-top:1px;"></i><span>Marque el módulo para seleccionar todas las acciones, o seleccione acciones individuales.</span></div>
+                        <div style="max-height:400px;overflow-y:auto;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-card);"><table class="perm-matrix" id="permMatrix"><thead><tr><th>Módulo</th><th>Ver</th><th>Crear</th><th>Editar</th><th>Eliminar</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                    <div class="actions"><button class="btn btn-primary" id="btnSaveRole"><i class="fas fa-save"></i> Guardar Rol</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ TAB: AUDITORÍA ═══ -->
+        <div class="admin-panel" id="tabAuditoria">
+            <div class="data-toolbar" style="flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div class="form-group" style="margin-bottom:0;"><select id="auditUserFilter"><option value="">Todos los usuarios</option></select></div>
+                    <div class="form-group" style="margin-bottom:0;"><select id="auditModFilter"><option value="">Todos los módulos</option><option value="usuarios">Usuarios</option><option value="clientes">Clientes</option><option value="vehiculos">Vehículos</option><option value="ordenes_trabajo">Órdenes de Trabajo</option><option value="recepcion">Recepción</option><option value="presupuestos">Presupuestos</option><option value="inventario">Inventario</option><option value="finanzas">Finanzas</option><option value="config">Configuración</option></select></div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="date" id="auditDateFrom" style="width:150px;"></div>
+                    <span style="color:var(--text-secondary);">—</span>
+                    <div class="form-group" style="margin-bottom:0;"><input type="date" id="auditDateTo" style="width:150px;"></div>
+                    <button class="btn btn-secondary" id="btnAuditSearch"><i class="fas fa-search"></i> Buscar</button>
+                </div>
+                <div class="toolbar-actions"><button class="btn btn-secondary" id="btnAuditExport"><i class="fas fa-download"></i> Exportar</button></div>
+            </div>
+            <div class="config-section"><h3><i class="fas fa-clock-rotate-left"></i> Registro de Actividad</h3><div class="audit-timeline" id="auditTimeline"><div style="padding:20px;text-align:center;color:var(--text-secondary);">Seleccione filtros y haga clic en Buscar</div></div></div>
+        </div>
+
+        <!-- ═══ TAB: CONFIGURACIÓN ═══ -->
+        <div class="admin-panel" id="tabConfig">
+            <div class="help-panel">
+                <h4><i class="fas fa-lightbulb"></i> Configuración del Sistema</h4>
+                <p>Parámetros globales del ERP. Los cambios se aplican inmediatamente.</p>
+            </div>
+            <form id="configForm"><div id="configGroupsContainer"><div style="padding:20px;text-align:center;color:var(--text-secondary);">Cargando...</div></div><div class="actions" style="margin-top:24px;"><button type="submit" class="btn btn-primary" id="btnSaveConfig"><i class="fas fa-save"></i> Guardar Configuración</button></div></form>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="imgModal" style="display:none;" onclick="this.style.display='none'"><div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;"><img id="imgModalSrc" style="max-width:100%;max-height:90vh;border-radius:var(--radius-md);"></div></div>
+
+    <script src="js/common.js?v=20260714090000"></script>
+    <script src="js/admin.js?v=20260714020000"></script>
+    <script src="js/command-palette.js?v=20260714020000"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .proveedor-articulos-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+        .proveedor-articulos-table th { background:rgba(255,255,255,.04); color:var(--text-secondary); font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:.5rem .6rem; text-align:left; border-bottom:1px solid var(--border-color); }
+        .proveedor-articulos-table td { padding:.45rem .6rem; border-bottom:1px solid var(--border-color); }
+        .proveedor-articulos-table tr:hover td { background:rgba(37,99,235,.04); }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><i class="fas fa-truck"></i> Proveedores</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+                <div class="module-hero orange">
+            <div class="mh-icon"><i class="fas fa-truck"></i></div>
+            <h2>Proveedores</h2>
+            <div class="mh-subtitle">Directorio de proveedores de repuestos, insumos y servicios. Gestione datos de contacto, condiciones de pago y productos suministrados.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Mantén un registro actualizado de todos los proveedores con los que trabaja el taller. Permite vincular proveedores con órdenes de compra y artículos del inventario.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Órdenes de Compra</span><span class="mc-tag">Compras</span><span class="mc-tag">Artículos</span><span class="mc-tag">Insumos</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Procurement</div>
+                <div class="mc-tags"><span class="mc-tag accent">Procurement</span><span class="mc-tag">Contactos</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Registrar datos del proveedor. Luego indicar productos que suministra, definir condiciones de pago y finalmente asociar a órdenes de compra.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Registrar datos del proveedor</span><span class="mhe-step"><span class="step-num">2</span> Indicar productos que suministra</span><span class="mhe-step"><span class="step-num">3</span> Definir condiciones de pago</span><span class="mhe-step"><span class="step-num">4</span> Asociar a órdenes de compra</span></div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, RUT o rubro...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">PR</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><i class="fas fa-address-card"></i> Datos</div>
+                <div class="ficha-tab" data-tab="articulos"><i class="fas fa-box"></i> Artículos <span class="tab-badge" id="badgeArt">0</span></div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <!-- Tab: Datos -->
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Razón Social <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group"><label>RUT</label><input type="text" id="rut" name="rut"></div>
+                        <div class="form-group"><label>Rubro</label><div class="select-wrapper"><select id="rubro" name="rubro" data-category="rubro_proveedor"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Teléfono</label><input type="tel" id="telefono" name="telefono"></div>
+                        <div class="form-group"><label>Correo</label><input type="email" id="correo" name="correo"></div>
+                        <div class="form-group full-width"><label>Dirección</label><textarea id="direccion" name="direccion" rows="2"></textarea></div>
+                        <div class="form-section-title"><i class="fas fa-user-circle"></i> Contacto Principal</div>
+                        <div class="form-group"><label>Nombre Contacto</label><input type="text" id="contacto_nombre" name="contacto_nombre"></div>
+                        <div class="form-group"><label>Tel. Contacto</label><input type="tel" id="contacto_telefono" name="contacto_telefono"></div>
+                        <div class="form-group"><label>Sitio Web</label><input type="text" id="sitio_web" name="sitio_web" placeholder="https://"></div>
+                        <div class="form-group full-width"><label>Observaciones</label><textarea id="observaciones" name="observaciones" rows="2"></textarea></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Artículos -->
+            <div class="ficha-panel" id="tabArticulos">
+                <div style="margin-bottom:1rem;">
+                    <button type="button" class="btn btn-primary" id="btnAgregarArticulo"><i class="fas fa-plus"></i> Agregar Artículo</button>
+                </div>
+                <div id="articulosContainer"></div>
+            </div>
+
+            <!-- Tab: Adjuntos -->
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/proveedores.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

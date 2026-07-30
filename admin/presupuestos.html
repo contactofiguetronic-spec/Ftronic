@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuestos - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ── Wizard Progress ──────────────────────────────────────── */
+        .wizard-progress{display:flex;gap:0;margin:0 0 1.2rem;border-radius:12px;overflow:hidden;border:1px solid var(--border-color);background:rgba(0,0,0,0.08)}
+        .wizard-progress .step{flex:1;padding:0.6rem 0.4rem;text-align:center;font-size:.72rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);border-right:1px solid var(--border-color);position:relative}
+        .wizard-progress .step:last-child{border-right:none}
+        .wizard-progress .step span{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:rgba(255,255,255,0.15);margin-right:.3rem;font-size:.65rem}
+        .wizard-progress .step.done{background:rgba(34,197,94,0.12);color:var(--success)}
+        .wizard-progress .step.done span{background:var(--success);color:#fff}
+        .wizard-progress .step.active{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;box-shadow:0 2px 12px rgba(37,99,235,0.3)}
+        .wizard-progress .step.active span{background:#fff;color:var(--primary)}
+        .step-panel{display:none}
+        .step-panel.active{display:block;animation:fadeIn 0.3s ease}
+        .wizard-nav{display:flex;justify-content:space-between;gap:.75rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border-color)}
+
+        /* ── Presupuesto Item Builder ──────────────────────────────── */
+        .presup-item-list{width:100%;border-collapse:collapse;margin:.6rem 0}
+        .presup-item-list th{background:rgba(255,255,255,.04);color:var(--text-secondary);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:.5rem .6rem;text-align:left;border-bottom:1px solid var(--border-color)}
+        .presup-item-list td{padding:.45rem .6rem;border-bottom:1px solid var(--border-color);font-size:.82rem;color:var(--text-primary);vertical-align:middle}
+        .presup-item-list tr:hover td{background:rgba(37,99,235,.04)}
+        .presup-item-list .item-nombre{font-weight:600;max-width:180px}
+        .presup-item-list .item-tipo{font-size:.65rem;padding:.15rem .4rem;border-radius:4px;font-weight:600}
+        .presup-item-list .item-tipo.servicio{background:rgba(37,99,235,.12);color:var(--primary)}
+        .presup-item-list .item-tipo.articulo{background:rgba(16,185,129,.12);color:var(--accent)}
+        .presup-item-list input[type=number]{width:60px;background:rgba(255,255,255,.05);border:1px solid var(--border-color);border-radius:4px;padding:.3rem .4rem;color:var(--text-primary);font-size:.82rem;text-align:right}
+        .presup-item-list input[type=number]:focus{border-color:var(--primary);outline:none}
+        .presup-item-list .item-subtotal{font-weight:700;color:var(--accent);text-align:right;white-space:nowrap}
+        .presup-item-list .btn-remove{background:rgba(239,68,68,.1);border:none;color:var(--danger);width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:background .2s}
+        .presup-item-list .btn-remove:hover{background:rgba(239,68,68,.25)}
+
+        /* ── Totals Panel ─────────────────────────────────────────── */
+        .presup-totals{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem 1.2rem;margin-top:.6rem}
+        .presup-totals .pt-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;font-size:.85rem}
+        .presup-totals .pt-row.pt-grand{border-top:2px solid var(--primary);margin-top:.4rem;padding-top:.6rem;font-size:1.05rem;font-weight:700}
+        .presup-totals .pt-label{color:var(--text-secondary)}
+        .presup-totals .pt-value{font-weight:600;color:var(--text-primary)}
+        .presup-totals .pt-row.pt-grand .pt-value{color:var(--accent);font-size:1.15rem}
+        .presup-totals .pt-row .pt-discount{color:var(--danger)}
+
+        /* ── Client/Vehicle Info Panels ───────────────────────────── */
+        .client-info-panel{background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.12);border-radius:var(--radius-md);padding:.8rem 1rem;margin-top:.5rem;display:none}
+        .client-info-panel.active{display:block}
+        .client-info-panel .cip-row,.vehicle-info-panel .cip-row{display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.82rem}
+        .client-info-panel .cip-item,.vehicle-info-panel .cip-item{display:flex;align-items:center;gap:.4rem}
+        .client-info-panel .cip-label,.vehicle-info-panel .cip-label{color:var(--text-secondary);font-size:.72rem;text-transform:uppercase;font-weight:600}
+        .client-info-panel .cip-value,.vehicle-info-panel .cip-value{color:var(--text-primary);font-weight:600}
+        .vehicle-info-panel{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.12);border-radius:var(--radius-md);padding:.8rem 1rem;margin-top:.5rem;display:none}
+        .vehicle-info-panel.active{display:block}
+
+        /* ── Catalog Browser ──────────────────────────────────────── */
+        .catalog-search{display:flex;gap:.5rem;margin-bottom:.8rem}
+        .catalog-search input{flex:1;padding:.5rem .8rem;background:rgba(255,255,255,.05);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:.82rem}
+        .catalog-search input:focus{border-color:var(--primary);outline:none}
+        .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.6rem;max-height:300px;overflow-y:auto;padding-right:.3rem}
+        .catalog-card{background:rgba(255,255,255,.03);border:1px solid var(--border-color);border-radius:8px;padding:.7rem;cursor:pointer;transition:all .2s;position:relative}
+        .catalog-card:hover{border-color:var(--primary);background:rgba(37,99,235,.06)}
+        .catalog-card.selected{border-color:var(--accent);background:rgba(16,185,129,.08)}
+        .catalog-card .cc-name{font-weight:600;font-size:.82rem;color:var(--text-primary);margin-bottom:.2rem}
+        .catalog-card .cc-detail{font-size:.7rem;color:var(--text-secondary)}
+        .catalog-card .cc-price{font-size:.85rem;font-weight:700;color:var(--accent);margin-top:.3rem}
+        .catalog-card .cc-icon{position:absolute;top:.6rem;right:.6rem;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem}
+        .catalog-card .cc-icon.srv{background:rgba(37,99,235,.15);color:var(--primary)}
+        .catalog-card .cc-icon.art{background:rgba(16,185,129,.15);color:var(--accent)}
+        .catalog-empty{text-align:center;padding:2rem;color:var(--text-secondary);font-size:.82rem}
+        .catalog-empty i{font-size:1.5rem;margin-bottom:.5rem;display:block;opacity:.4}
+
+        /* ── Add Item Buttons ──────────────────────────────────────── */
+        .add-item-row{display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap}
+        .add-item-btn{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:var(--bg-card);border:1px dashed var(--border-color);border-radius:8px;color:var(--text-secondary);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+        .add-item-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(37,99,235,.05)}
+        .add-item-btn i{font-size:.9rem}
+
+        /* ── Discount Section ──────────────────────────────────────── */
+        .discount-section{display:flex;gap:.8rem;align-items:end;margin-top:.5rem;flex-wrap:wrap}
+        .discount-section .form-group{margin-bottom:0}
+        .discount-section label{font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em}
+
+        /* ── Wizard Modal (reutilizables) ─────────────────────────── */
+        .wizard-modal{position:fixed;inset:0;z-index:var(--z-modal);display:none;align-items:center;justify-content:center}
+        .wizard-modal.active{display:flex}
+        .wizard-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+        .wizard-modal-content{position:relative;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);width:90%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+        .wizard-modal-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;border-bottom:1px solid var(--border-color)}
+        .wizard-modal-header h3{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+        .wizard-modal-close{background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;padding:.2rem}
+        .wizard-modal-close:hover{color:var(--text-primary)}
+        .wizard-modal-body{padding:1.2rem}
+        .wizard-modal-footer{display:flex;justify-content:flex-end;gap:.5rem;padding:1rem 1.2rem;border-top:1px solid var(--border-color)}
+        .wform-group{margin-bottom:.8rem}
+        .wform-group label{display:block;font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.3rem}
+        .wform-group input,.wform-group select,.wform-group textarea{width:100%;padding:.5rem .7rem;background:rgba(255,255,255,.05);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:.82rem;font-family:var(--font)}
+        .wform-group input:focus,.wform-group select:focus,.wform-group textarea:focus{border-color:var(--primary);outline:none}
+        .wform-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+
+        /* ── Typeahead ────────────────────────────────────────────── */
+        .typeahead-results{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+        .typeahead-results div{padding:.5rem .8rem;cursor:pointer;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04)}
+        .typeahead-results div:hover{background:rgba(37,99,235,.1)}
+
+        /* ── Quick create buttons ─────────────────────────────────── */
+        .quick-create-row{display:flex;gap:.5rem;margin-top:.4rem}
+        .quick-create-btn{font-size:.72rem;padding:.3rem .6rem;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);color:var(--primary);border-radius:6px;cursor:pointer;font-weight:600;transition:all .2s}
+        .quick-create-btn:hover{background:var(--primary);color:#fff}
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span> Presupuestos</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <div class="module-hero blue">
+            <div class="mh-icon"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span></div>
+            <h2>Presupuestos</h2>
+            <div class="mh-subtitle">Crea presupuestos detallados con ítems de servicios y artículos, descuentos, cálculo automático de neto/IVA/total. Genera PDF con 2 copias (original + cliente).</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Genera presupuestos formales. Agregue servicios y artículos, asigne descuentos, calcule neto/IVA/total automáticamente. El cliente aprueba antes de crear la OT.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Recepción</span><span class="mc-tag">Órdenes de Trabajo</span><span class="mc-tag">Clientes</span><span class="mc-tag">Ventas</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Aprobación</div>
+                <div class="mc-tags"><span class="mc-tag accent">Aprobación</span><span class="mc-tag">Costos</span><span class="mc-tag accent">Presupuesto</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar?</strong> Seleccione un cliente (o créalo rápido), vincule un vehículo, agregue servicios y artículos con cantidades y descuentos. Los totales se calculan automáticamente. Genere el PDF para enviar al cliente.
+                <div class="mhe-steps">
+                    <span class="mhe-step"><span class="step-num">1</span> Seleccionar cliente</span>
+                    <span class="mhe-step"><span class="step-num">2</span> Vincular vehículo</span>
+                    <span class="mhe-step"><span class="step-num">3</span> Agregar servicios</span>
+                    <span class="mhe-step"><span class="step-num">4</span> Agregar artículos</span>
+                    <span class="mhe-step"><span class="step-num">5</span> Ítems, totales y PDF</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por cliente, patente o N°...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo" data-perm="presupuestos:crear"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+
+            <!-- Banner OTs finalizadas listas para presupuestar -->
+            <div id="otFinalizadasBanner" style="display:none;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.75rem;"></div>
+            <div id="otFinalizadasHelp" style="display:none;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.75rem;font-size:0.82rem;color:var(--text-secondary);">
+                <strong><i class="fas fa-info-circle"></i> Flujo OT → Presupuesto:</strong>
+                Las OTs aparecen aquí al finalizar el trabajo en Ejecución OT. Presione <em>Cargar en Presupuesto</em> para importar servicios y repuestos automáticamente.
+            </div>
+
+            <div class="card-grid" id="cardGrid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span></div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">Nuevo Presupuesto</h2>
+                    <div class="ficha-sub" id="fichaSub">Complete los pasos del wizard para crear el presupuesto</div>
+                </div>
+                <div class="ficha-actions">
+                    <button type="button" class="btn btn-sm btn-success" style="display:none" id="btnRegistrarPago" onclick="abrirModalPago()"><i class="fas fa-dollar-sign"></i> Pago</button>
+                    <button type="button" class="btn btn-sm btn-primary" style="display:none" id="btnVerificar"><i class="fas fa-check-double"></i> Verificar</button>
+                    <button type="button" class="btn btn-sm btn-accent" style="display:none" id="btnCrearOT"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span> Generar OT</button>
+                    <button type="button" class="btn btn-sm btn-secondary" style="display:none" id="btnPdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button type="button" class="btn btn-sm btn-danger-outline" style="display:none" id="btnEliminar" data-perm="presupuestos:eliminar"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnVolver"><i class="fas fa-arrow-left"></i> Volver</button>
+                </div>
+            </div>
+
+            <form id="dataForm" enctype="multipart/form-data" data-draft-module="presupuestos">
+                <input type="hidden" name="id" id="record_id">
+                <input type="hidden" name="vehiculo_id" id="vehiculo_id_hidden">
+                <input type="hidden" name="cliente_id" id="cliente_id_hidden">
+
+                <!-- WIZARD PROGRESS -->
+                <div class="wizard-progress" id="wizardProgress">
+                    <div class="step active" data-step="0"><span>1</span> Cliente</div>
+                    <div class="step" data-step="1"><span>2</span> Vehículo</div>
+                    <div class="step" data-step="2"><span>3</span> Servicios</div>
+                    <div class="step" data-step="3"><span>4</span> Artículos</div>
+                    <div class="step" data-step="4"><span>5</span> Totales</div>
+                </div>
+
+                <!-- ═══════ PASO 0: CLIENTE ═══════════════════════════════ -->
+                <div class="step-panel active" data-step="0">
+                    <div class="form-section-title"><i class="fas fa-user"></i> Cliente</div>
+                    <div class="form-group" style="position:relative;">
+                        <label>Buscar Cliente <span class="required-dot">*</span></label>
+                        <input type="text" id="buscarCliente" placeholder="Nombre, RUT o teléfono..." autocomplete="off">
+                        <div id="resultadosCliente" class="typeahead-results"></div>
+                    </div>
+                    <div class="quick-create-row">
+                        <button type="button" class="quick-create-btn" id="btnQuickCreateCliente"><i class="fas fa-plus"></i> Crear cliente rápido</button>
+                    </div>
+                    <div class="client-info-panel" id="clientInfoPanel">
+                        <div class="cip-row">
+                            <div class="cip-item"><span class="cip-label">Nombre:</span> <span class="cip-value" id="cipNombre">—</span></div>
+                            <div class="cip-item"><span class="cip-label">RUT:</span> <span class="cip-value" id="cipRut">—</span></div>
+                            <div class="cip-item"><span class="cip-label">Tel:</span> <span class="cip-value" id="cipTel">—</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ PASO 1: VEHÍCULO ═══════════════════════════════ -->
+                <div class="step-panel" data-step="1">
+                    <div class="form-section-title"><i class="fas fa-car"></i> Vehículo</div>
+                    <div class="form-group">
+                        <label>Seleccionar Vehículo</label>
+                        <select id="vehiculo_select" name="vehiculo_select"><option value="">— Seleccionar —</option></select>
+                    </div>
+                    <div class="quick-create-row">
+                        <button type="button" class="quick-create-btn" id="btnQuickCreateVehiculo"><i class="fas fa-plus"></i> Crear vehículo rápido</button>
+                    </div>
+                    <div class="vehicle-info-panel" id="vehicleInfoPanel">
+                        <div class="cip-row">
+                            <div class="cip-item"><span class="cip-label">Marca:</span> <span class="cip-value" id="vipMarca">—</span></div>
+                            <div class="cip-item"><span class="cip-label">Modelo:</span> <span class="cip-value" id="vipModelo">—</span></div>
+                            <div class="cip-item"><span class="cip-label">Patente:</span> <span class="cip-value" id="vipPatente">—</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ PASO 2: SERVICIOS ═══════════════════════════════ -->
+                <div class="step-panel" data-step="2">
+                    <div class="form-section-title"><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span> Catálogo de Servicios</div>
+                    <div class="catalog-search">
+                        <input type="text" id="searchServicios" placeholder="Buscar servicio..." autocomplete="off">
+                        <button type="button" class="quick-create-btn" id="btnQuickCreateServicio"><i class="fas fa-plus"></i> Nuevo</button>
+                    </div>
+                    <div class="catalog-grid" id="catalogoServicios"></div>
+                    <div class="form-section-title" style="margin-top:1rem"><i class="fas fa-list"></i> Ítems Agregados</div>
+                    <div id="itemsServiciosEmpty" class="catalog-empty"><i class="fas fa-inbox"></i> Seleccione servicios del catálogo arriba</div>
+                    <div style="overflow-x:auto">
+                        <table class="presup-item-list" id="itemsServiciosTable" style="display:none">
+                            <thead><tr><th>Ítem</th><th style="width:50px">Cant</th><th style="width:80px">P. Unit</th><th style="width:60px">Dcto %</th><th style="width:85px;text-align:right">Subtotal</th><th style="width:30px"></th></tr></thead>
+                            <tbody id="itemsServiciosBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═══════ PASO 3: ARTÍCULOS ═══════════════════════════════ -->
+                <div class="step-panel" data-step="3">
+                    <div class="form-section-title"><i class="fas fa-box"></i> Catálogo de Artículos</div>
+                    <div class="catalog-search">
+                        <input type="text" id="searchArticulos" placeholder="Buscar artículo..." autocomplete="off">
+                        <button type="button" class="quick-create-btn" id="btnQuickCreateArticulo"><i class="fas fa-plus"></i> Nuevo</button>
+                    </div>
+                    <div class="catalog-grid" id="catalogoArticulos"></div>
+                    <div class="form-section-title" style="margin-top:1rem"><i class="fas fa-list"></i> Ítems Agregados</div>
+                    <div id="itemsArticulosEmpty" class="catalog-empty"><i class="fas fa-inbox"></i> Seleccione artículos del catálogo arriba</div>
+                    <div style="overflow-x:auto">
+                        <table class="presup-item-list" id="itemsArticulosTable" style="display:none">
+                            <thead><tr><th>Ítem</th><th style="width:50px">Cant</th><th style="width:80px">P. Unit</th><th style="width:60px">Dcto %</th><th style="width:85px;text-align:right">Subtotal</th><th style="width:30px"></th></tr></thead>
+                            <tbody id="itemsArticulosBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═══════ PASO 4: TOTALES + DETALLE ═══════════════════════ -->
+                <div class="step-panel" data-step="4">
+                    <div class="form-section-title"><i class="fas fa-receipt"></i> Ítems del Presupuesto</div>
+                    <div style="overflow-x:auto">
+                        <table class="presup-item-list" id="itemsTable">
+                            <thead><tr><th>Ítem</th><th style="width:50px">Cant</th><th style="width:80px">P. Unit</th><th style="width:60px">Dcto %</th><th style="width:85px;text-align:right">Subtotal</th><th style="width:30px"></th></tr></thead>
+                            <tbody id="itemsBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="emptyItemsMsg" class="catalog-empty"><i class="fas fa-inbox"></i> Agregue servicios o artículos en los pasos anteriores</div>
+
+                    <!-- DESCUENTOS -->
+                    <div class="discount-section">
+                        <div class="form-group" style="flex:1;min-width:120px;">
+                            <label>Descuento Global ($)</label>
+                            <input type="number" id="descuento_global" name="descuento_global" value="0" min="0" step="100">
+                        </div>
+                        <div class="form-group" style="flex:1;min-width:120px;">
+                            <label>Descuento Global (%)</label>
+                            <input type="number" id="descuento_pct" name="descuento_pct" value="0" min="0" max="100" step="0.5">
+                        </div>
+                    </div>
+
+                    <!-- TOTALES -->
+                    <div class="presup-totals" id="totalsPanel">
+                        <div class="pt-row"><span class="pt-label">Subtotal Ítems</span><span class="pt-value" id="totalItems">$0</span></div>
+                        <div class="pt-row"><span class="pt-label">Descuento Ítems</span><span class="pt-value pt-discount" id="totalDescItems">-$0</span></div>
+                        <div class="pt-row"><span class="pt-label">Neto</span><span class="pt-value" id="totalNeto">$0</span></div>
+                        <div class="pt-row"><span class="pt-label">IVA 19%</span><span class="pt-value" id="totalIVA">$0</span></div>
+                        <div class="pt-row"><span class="pt-label">Descuento Global</span><span class="pt-value pt-discount" id="totalDescGlobal">-$0</span></div>
+                        <div class="pt-row pt-grand"><span class="pt-label">TOTAL</span><span class="pt-value" id="totalGrand">$0</span></div>
+                    </div>
+
+                    <!-- DETALLE -->
+                    <div class="form-section-title" style="margin-top:1rem"><i class="fas fa-caret-right"></i> Detalle</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                        <div class="form-group"><label>Fecha</label><input type="date" id="fecha" name="fecha"></div>
+                        <div class="form-group"><label>Vigencia (días)</label><input type="number" id="vigencia" name="vigencia" value="30" min="1"></div>
+                    </div>
+                    <div class="form-group"><label>Requisitos del Cliente</label><textarea id="requisito" name="requisito" rows="2" placeholder="Qué necesita el cliente..."></textarea></div>
+                    <div class="form-group"><label>Observaciones</label><textarea id="observaciones" name="observaciones" rows="2" placeholder="Condiciones, notas internas..."></textarea></div>
+
+                    <!-- ARCHIVOS -->
+                    <div class="multimedia-area">
+                        <h3><i class="fas fa-photo-video"></i> Adjuntos</h3>
+                        <div id="existingMediaContainer" style="display:none;">
+                            <p class="media-label">Archivos almacenados:</p>
+                            <div class="existing-media-grid" id="existingMediaGrid"></div>
+                        </div>
+                        <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                        <div class="upload-zone compact" id="uploadZone"><i class="fas fa-cloud-upload-alt"></i><p>Arrastra archivos</p></div>
+                    </div>
+                </div>
+
+                <!-- NAVEGACIÓN WIZARD -->
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-secondary" id="btnPrev"><i class="fas fa-chevron-left"></i> Anterior</button>
+                    <div style="display:flex;gap:.5rem">
+                        <button type="button" class="btn btn-primary" id="btnNext">Siguiente <i class="fas fa-chevron-right"></i></button>
+                        <button type="submit" class="btn btn-success" id="btnGuardarFinal" style="display:none"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Registrar Pago Modal -->
+    <div class="modal" id="pagoModal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-dollar-sign"></i> Registrar Pago</h3>
+                <button class="modal-close" onclick="cerrarModalPago()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="pagoResumen" style="background:var(--bg-main);padding:0.75rem;border-radius:var(--radius-sm);margin-bottom:1rem;"></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Monto <span class="required-dot">*</span></label><input type="number" id="pagoMonto" min="1" required></div>
+                    <div class="form-group"><label>Cuenta Bancaria</label><select id="pagoCuenta"><option value="">— Sin cuenta —</option></select></div>
+                    <div class="form-group"><label>Forma de Pago</label><select id="pagoForma"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta Débito</option><option>Tarjeta Crédito</option><option>Cheque</option><option>Otro</option></select></div>
+                    <div class="form-group full-width"><label>Observación / Referencia</label><input type="text" id="pagoObservacion" placeholder="N° transferencia, voucher..."></div>
+                    <div class="form-group full-width">
+                        <label>Comprobante <span style="font-size:0.7rem;color:var(--text-secondary)">(imagen o PDF opcional)</span></label>
+                        <input type="file" id="pagoComprobante" accept="image/*,application/pdf" style="display:block;width:100%;padding:0.4rem;background:rgba(255,255,255,0.04);border:1px dashed var(--border-color);border-radius:8px;color:var(--text-secondary);font-size:0.8rem;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalPago()"><i class="fas fa-times"></i> Cancelar</button>
+                <button type="button" class="btn btn-success" id="pagoConfirmar"><i class="fas fa-check"></i> Registrar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/pdf-generator.js?v=20260706050000"></script>
+    <script src="js/wizard_cliente.js?v=20260706050000"></script>
+    <script src="js/wizard_vehiculo.js?v=20260706050000"></script>
+    <script src="js/wizard_servicio.js?v=20260706050000"></script>
+    <script src="js/wizard_articulo.js?v=20260706050000"></script>
+    <script src="js/presupuestos.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

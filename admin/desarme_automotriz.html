@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desarme Automotriz - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260723120000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260723120000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .kpi-bar{display:flex;gap:0.75rem;margin-bottom:1.25rem;overflow-x:auto;padding-bottom:0.5rem}
+        .kpi-card{flex:1;min-width:130px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:0.85rem 1rem;text-align:center;transition:var(--transition)}
+        .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+        .kpi-card .kpi-value{font-size:1.6rem;font-weight:700;color:var(--text-primary);line-height:1.2}
+        .kpi-card .kpi-label{font-size:0.72rem;color:var(--text-secondary);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.03em}
+        .kpi-card.phase-recepcion{border-left:3px solid var(--primary)}
+        .kpi-card.phase-descontaminacion{border-left:3px solid #f59e0b}
+        .kpi-card.phase-desarme{border-left:3px solid var(--danger)}
+        .kpi-card.phase-preparacion{border-left:3px solid #8b5cf6}
+        .kpi-card.phase-completado{border-left:3px solid var(--success)}
+
+        .toolbar-filters{display:flex;gap:0.5rem;flex-wrap:wrap}
+        .toolbar-filters select{min-width:140px}
+
+        .ficha-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:1.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .ficha-tab{padding:0.7rem 1.1rem;cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--text-secondary);border-bottom:3px solid transparent;transition:var(--transition);white-space:nowrap;display:flex;align-items:center;gap:0.4rem}
+        .ficha-tab:hover{color:var(--text-primary);background:rgba(255,255,255,0.04)}
+        .ficha-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        .tab-panel{display:none}
+        .tab-panel.active{display:block;animation:fadeIn 0.3s ease}
+
+        .progress-steps{display:flex;gap:0;margin:0 0 1.5rem;border-radius:12px;overflow:hidden;border:1px solid var(--border-color);background:rgba(0,0,0,0.08)}
+        .progress-steps .pstep{flex:1;padding:0.6rem 0.4rem;text-align:center;font-size:0.72rem;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border-color);transition:var(--transition)}
+        .progress-steps .pstep:last-child{border-right:none}
+        .progress-steps .pstep span{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:rgba(255,255,255,0.15);margin-right:0.3rem;font-size:0.65rem}
+        .progress-steps .pstep.done{background:rgba(34,197,94,0.12);color:var(--success)}
+        .progress-steps .pstep.done span{background:var(--success);color:#fff}
+        .progress-steps .pstep.active{background:linear-gradient(135deg,var(--primary),var(--primary-hover));color:#fff;box-shadow:0 2px 12px rgba(37,99,235,0.3)}
+        .progress-steps .pstep.active span{background:#fff;color:var(--primary)}
+
+        .checklist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0.75rem}
+        .checklist-item{display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1rem;border:1px solid var(--border-color);border-radius:10px;background:rgba(255,255,255,0.02);transition:var(--transition)}
+        .checklist-item:hover{border-color:var(--primary);background:rgba(37,99,235,0.03)}
+        .checklist-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primary);cursor:pointer}
+        .checklist-item .cl-info{flex:1}
+        .checklist-item .cl-name{font-size:0.85rem;font-weight:600;color:var(--text-primary)}
+        .checklist-item .cl-fields{display:flex;gap:0.5rem;margin-top:0.4rem;flex-wrap:wrap}
+        .checklist-item .cl-fields input,.checklist-item .cl-fields select{font-size:0.78rem;padding:0.35rem 0.5rem;border-radius:6px;border:1px solid var(--border-color);background:rgba(0,0,0,0.15);color:var(--text-primary);min-width:80px}
+        .checklist-item .cl-photo{padding:0.4rem;border-radius:6px;background:rgba(0,0,0,0.2);border:1px solid var(--border-color);cursor:pointer;color:var(--text-secondary);transition:var(--transition)}
+        .checklist-item .cl-photo:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+        .mission-group{border:1px solid var(--border-color);border-radius:10px;margin-bottom:0.75rem;overflow:hidden}
+        .mission-group-header{padding:0.7rem 1rem;font-weight:700;font-size:0.85rem;color:var(--text-primary);background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:var(--transition)}
+        .mission-group-header:hover{background:rgba(0,0,0,0.1)}
+        .mission-group-header .mg-count{font-size:0.75rem;color:var(--text-secondary);font-weight:500}
+        .mission-group-body{padding:0.5rem 1rem;transition:max-height 0.3s ease}
+        .mission-group-actions{margin-bottom:0.5rem;display:flex;gap:0.5rem}
+        .mission-group-actions .btn{font-size:0.75rem;padding:0.3rem 0.6rem}
+        .mission-part{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.75rem;border:1px solid rgba(255,255,255,0.06);border-radius:8px;margin-bottom:0.4rem;transition:var(--transition)}
+        .mission-part:hover{background:rgba(37,99,235,0.05);border-color:var(--primary)}
+        .mission-part .mp-name{font-size:0.82rem;font-weight:500;color:var(--text-primary);flex:1;min-width:0}
+        .mission-part .mp-status{font-size:0.72rem;padding:0.2rem 0.6rem;border-radius:20px;font-weight:600;flex-shrink:0}
+        .mp-status.extraida{background:rgba(34,197,94,0.15);color:var(--success)}
+        .mp-status.pendiente{background:rgba(255,255,255,0.08);color:var(--text-secondary)}
+        .mission-part.pendiente{cursor:pointer;border-color:rgba(37,99,235,0.15)}
+        .mission-part.pendiente:hover{background:rgba(37,99,235,0.08);border-color:var(--primary);transform:translateX(3px)}
+        .mission-part.pendiente:hover .mp-status.pendiente{background:var(--primary);color:#fff}
+        .mission-part.deshabilitada{opacity:0.5;border-style:dashed;cursor:default}
+        .mission-part.deshabilitada:hover{opacity:0.7;transform:none}
+        .mission-part.grupo-expand{border-left:3px solid #8b5cf6;background:rgba(139,92,246,0.05)}
+        .mission-part.grupo-expand:hover{background:rgba(139,92,246,0.1)}
+        .grupo-hijos{border-left:2px solid rgba(139,92,246,0.2);margin-left:0.5rem}
+        .vehicle-specs{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0.5rem 0}
+        .vehicle-spec{display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.15);border-radius:20px;font-size:0.78rem;font-weight:600;color:var(--primary)}
+        .vehicle-spec i{font-size:0.7rem}
+        .phase-help{background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:0.7rem 1rem;margin-bottom:1rem;font-size:0.8rem;color:var(--text-secondary);line-height:1.5}
+        .phase-help i{color:var(--primary);margin-right:0.4rem}
+
+        .parts-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem}
+        .part-card{border:1px solid var(--border-color);border-radius:10px;padding:0.85rem;background:rgba(255,255,255,0.02);transition:var(--transition)}
+        .part-card:hover{border-color:var(--primary);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+        .part-card .pc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem}
+        .part-card .pc-name{font-size:0.85rem;font-weight:700;color:var(--text-primary)}
+        .part-card .pc-badge{font-size:0.68rem;padding:0.15rem 0.5rem;border-radius:12px;font-weight:700;text-transform:uppercase}
+        .pc-badge.bueno{background:rgba(34,197,94,0.15);color:var(--success)}
+        .pc-badge.malo{background:rgba(239,68,68,0.15);color:var(--danger)}
+        .pc-badge.no_verificado{background:rgba(255,255,255,0.1);color:var(--text-secondary)}
+        .part-card .pc-meta{font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.4rem}
+        .part-card .pc-actions{display:flex;gap:0.4rem;margin-top:0.5rem}
+        .part-card .pc-actions button{flex:1;font-size:0.75rem}
+
+        .timeline{position:relative;padding-left:1.5rem}
+        .timeline::before{content:'';position:absolute;left:0.5rem;top:0;bottom:0;width:2px;background:var(--border-color)}
+        .tl-item{position:relative;margin-bottom:1rem;padding:0.6rem 0.8rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(255,255,255,0.02)}
+        .tl-item::before{content:'';position:absolute;left:-1.1rem;top:0.8rem;width:10px;height:10px;border-radius:50%;background:var(--primary);border:2px solid var(--bg-main)}
+        .tl-item .tl-time{font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.2rem}
+        .tl-item .tl-action{font-size:0.82rem;font-weight:600;color:var(--text-primary)}
+        .tl-item .tl-detail{font-size:0.78rem;color:var(--text-secondary);margin-top:0.2rem}
+
+        .modal-pieza .form-section-title{margin-bottom:0.5rem}
+        .estado-btns{display:flex;gap:0.5rem;margin:0.75rem 0}
+        .estado-btns button{flex:1;padding:0.7rem;font-size:0.85rem;font-weight:700;border-radius:10px;border:2px solid var(--border-color);background:rgba(255,255,255,0.04);color:var(--text-secondary);cursor:pointer;transition:var(--transition)}
+        .estado-btns button:hover{transform:translateY(-1px)}
+        .estado-btns button.selected{color:#fff}
+        .estado-btns button[data-estado="Bueno"].selected{background:var(--success);border-color:var(--success)}
+        .estado-btns button[data-estado="Malo"].selected{background:var(--danger);border-color:var(--danger)}
+        .estado-btns button[data-estado="No Verificado"].selected{background:var(--warning);border-color:var(--warning)}
+
+        .typeahead-results{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+        .typeahead-results div{padding:0.5rem 0.8rem;cursor:pointer;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+        .typeahead-results div:hover{background:rgba(37,99,235,0.1)}
+
+        @media(max-width:768px){
+            .kpi-bar{flex-wrap:nowrap}
+            .kpi-card{min-width:100px;padding:0.6rem 0.75rem}
+            .kpi-card .kpi-value{font-size:1.3rem}
+            .checklist-grid{grid-template-columns:1fr}
+            .parts-list{grid-template-columns:1fr}
+            .ficha-tab{padding:0.6rem 0.8rem;font-size:0.78rem}
+            .mission-part{padding:0.7rem 0.85rem;min-height:48px}
+            .mission-part .mp-name{font-size:0.88rem}
+            .mission-part .mp-status{font-size:0.78rem;padding:0.3rem 0.7rem}
+            .mission-group-header{padding:0.85rem 1rem;font-size:0.9rem}
+            .mission-group-actions .btn{padding:0.4rem 0.8rem;font-size:0.82rem}
+            .grupo-hijos .mission-part{padding:0.6rem 0.7rem}
+            .vehicle-specs{gap:0.4rem}
+            .vehicle-spec{font-size:0.82rem;padding:0.35rem 0.8rem}
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span> Desarme Automotriz</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+        <div class="module-hero" style="background:linear-gradient(135deg,#dc2626,#991b1b)">
+            <div class="mh-icon"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span></div>
+            <h2>Desarme Automotriz</h2>
+            <div class="mh-subtitle">Proceso controlado de desarmado de vehículos para extracción, preparación y venta de piezas de repuesto.</div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="kpi-bar" id="kpiBar">
+                <div class="kpi-card phase-recepcion">
+                    <div class="kpi-value" id="kpiRecepcion">0</div>
+                    <div class="kpi-label">Recepción</div>
+                </div>
+                <div class="kpi-card phase-descontaminacion">
+                    <div class="kpi-value" id="kpiDescontaminacion">0</div>
+                    <div class="kpi-label">Descontaminación</div>
+                </div>
+                <div class="kpi-card phase-desarme">
+                    <div class="kpi-value" id="kpiDesarme">0</div>
+                    <div class="kpi-label">Desarme</div>
+                </div>
+                <div class="kpi-card phase-preparacion">
+                    <div class="kpi-value" id="kpiPreparacion">0</div>
+                    <div class="kpi-label">Preparación</div>
+                </div>
+                <div class="kpi-card phase-completado">
+                    <div class="kpi-value" id="kpiCompletado">0</div>
+                    <div class="kpi-label">Completado</div>
+                </div>
+            </div>
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por patente, folio o cliente...">
+                </div>
+                <div class="toolbar-filters">
+                    <select id="filterEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="recepcion">Recepción</option>
+                        <option value="descontaminacion">Descontaminación</option>
+                        <option value="desarme">Desarme</option>
+                        <option value="preparacion">Preparación</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                    <select id="filterMotivo">
+                        <option value="">Todos los motivos</option>
+                        <option value="dano_total">Daño Total</option>
+                        <option value="robo">Robo</option>
+                        <option value="abandono">Abandono</option>
+                        <option value="junk">Chatarra</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo Desarme</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span></div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">Nuevo Desarme</h2>
+                    <div class="ficha-sub" id="fichaSub">Seleccione un desarme o cree uno nuevo</div>
+                </div>
+                <div class="ficha-actions">
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnVolver"><i class="fas fa-arrow-left"></i> Volver</button>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="resumen"><i class="fas fa-info-circle"></i> Resumen</div>
+                <div class="ficha-tab" data-tab="descontaminacion"><i class="fas fa-biohazard"></i> Descontaminación</div>
+                <div class="ficha-tab" data-tab="desarme"><i class="fas fa-screwdriver-wrench"></i> Desarme</div>
+                <div class="ficha-tab" data-tab="preparacion"><i class="fas fa-broom"></i> Preparación</div>
+                <div class="ficha-tab" data-tab="publicacion"><i class="fas fa-store"></i> Publicación</div>
+                <div class="ficha-tab" data-tab="historial"><i class="fas fa-clock-rotate-left"></i> Historial</div>
+                <div class="ficha-tab" data-tab="reportes"><i class="fas fa-chart-pie"></i> Reportes</div>
+            </div>
+
+            <!-- TAB: RESUMEN -->
+            <div class="tab-panel active" id="panelResumen">
+                <div class="progress-steps" id="progressSteps">
+                    <div class="pstep active" data-phase="recepcion"><span>1</span> Recepción</div>
+                    <div class="pstep" data-phase="descontaminacion"><span>2</span> Descontaminación</div>
+                    <div class="pstep" data-phase="desarme"><span>3</span> Desarme</div>
+                    <div class="pstep" data-phase="preparacion"><span>4</span> Preparación</div>
+                    <div class="pstep" data-phase="completado"><span>5</span> Completado</div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group"><label>Folio</label><input type="text" id="dFolio" readonly style="background:rgba(0,0,0,0.1);font-weight:700"></div>
+                    <div class="form-group"><label>Fecha Inicio</label><input type="text" id="dFechaInicio" readonly></div>
+                    <div class="form-group"><label>Motivo</label><select id="dMotivo"><option value="">—</option><option value="dano_total">Daño Total</option><option value="robo">Robo</option><option value="abandono">Abandono</option><option value="junk">Chatarra</option><option value="otro">Otro</option></select></div>
+                    <div class="form-group"><label>Técnico Asignado</label><div class="select-wrapper"><select id="dTecnico" data-linked="empleados"><option value="">— Seleccionar —</option></select></div></div>
+                </div>
+
+                <div class="form-section-title"><i class="fas fa-car"></i> Datos del Vehículo</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Patente</label><input type="text" id="dPatente" readonly></div>
+                    <div class="form-group"><label>Marca</label><input type="text" id="dMarca" readonly></div>
+                    <div class="form-group"><label>Modelo</label><input type="text" id="dModelo" readonly></div>
+                    <div class="form-group"><label>Año</label><input type="text" id="dAnio" readonly></div>
+                    <div class="form-group"><label>Combustible</label><input type="text" id="dCombustible" readonly></div>
+                    <div class="form-group"><label>Transmisión</label><input type="text" id="dTransmision" readonly></div>
+                    <div class="form-group"><label>Tracción</label><input type="text" id="dTraccion" readonly></div>
+                    <div class="form-group"><label>Kilometraje</label><input type="text" id="dKilometraje" readonly></div>
+                </div>
+
+                <div class="form-section-title"><i class="fas fa-user"></i> Cliente</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nombre</label><input type="text" id="dClienteNombre" readonly></div>
+                    <div class="form-group"><label>Teléfono</label><input type="text" id="dClienteTelefono" readonly></div>
+                </div>
+
+                <div class="form-group" style="margin-top:1rem">
+                    <label>Notas del Desarme</label>
+                    <textarea id="dNotas" rows="3" placeholder="Observaciones generales del proceso de desarme..."></textarea>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap" id="resumenActions">
+                    <button class="btn btn-primary" id="btnIniciarDescontaminacion" style="display:none"><i class="fas fa-biohazard"></i> Iniciar Descontaminación</button>
+                    <button class="btn btn-primary" id="btnIniciarDesarme" style="display:none"><i class="fas fa-screwdriver-wrench"></i> Iniciar Desarme</button>
+                    <button class="btn btn-primary" id="btnIniciarPreparacion" style="display:none"><i class="fas fa-broom"></i> Iniciar Preparación</button>
+                    <button class="btn btn-success" id="btnCompletarDesarme" style="display:none"><i class="fas fa-check-double"></i> Completar Desarme</button>
+                    <button class="btn btn-secondary" id="btnGuardarResumen"><i class="fas fa-save"></i> Guardar</button>
+                </div>
+            </div>
+
+            <!-- TAB: DESCONTAMINACIÓN -->
+            <div class="tab-panel" id="panelDescontaminacion">
+                <div class="phase-help"><i class="fas fa-info-circle"></i> <strong>Descontaminación (opcional):</strong> Marque los fluidos que se descargaron antes del desarme. Esta fase no es obligatoria — puede pasar directamente a Desarme.</div>
+                <div class="form-section-title"><i class="fas fa-biohazard"></i> Fluidos Descargados</div>
+                <div class="checklist-grid" id="checklistGrid"></div>
+                <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap">
+                    <button class="btn btn-success" id="btnGuardarDescontaminacion"><i class="fas fa-save"></i> Guardar</button>
+                    <button class="btn btn-primary" id="btnCompletarDescontaminacion" style="display:none"><i class="fas fa-check-double"></i> Ir a Desarme</button>
+                    <button class="btn btn-warning btn-retroceder" id="btnRetroDescontaminacion" style="display:none;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)" onclick="retrocederFase('recepcion')"><i class="fas fa-arrow-left"></i> Volver a Recepción</button>
+                </div>
+            </div>
+
+            <!-- TAB: DESARME -->
+            <div class="tab-panel" id="panelDesarme">
+                <div class="phase-help"><i class="fas fa-info-circle"></i> <strong>Desarme guiado:</strong> Haga clic en una pieza pendiente para abrirla y registrar su extracción. Las piezas extraídas aparecen en verde abajo.</div>
+                <div class="form-section-title"><i class="fas fa-screwdriver-wrench"></i> Misiones de Desarme</div>
+                <div id="missionsContainer"></div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+                    <button class="btn btn-secondary" id="btnPiezaHuerfana"><i class="fas fa-puzzle-piece"></i> Pieza Huérfana</button>
+                    <button class="btn btn-warning btn-retroceder" id="btnRetroDesarme" style="display:none;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);margin-left:auto" onclick="retrocederFase('descontaminacion')"><i class="fas fa-arrow-left"></i> Volver a Descontaminación</button>
+                </div>
+            </div>
+
+            <!-- TAB: PREPARACIÓN -->
+            <div class="tab-panel" id="panelPreparacion">
+                <div class="phase-help"><i class="fas fa-info-circle"></i> <strong>Preparación:</strong> Verifique el estado de cada pieza extraída. Cambie el estado a "Bueno" o "Para Reparación" según corresponda.</div>
+                <div class="form-section-title"><i class="fas fa-broom"></i> Piezas para Preparar</div>
+                <div class="parts-list" id="prepPartsList"></div>
+                <div style="margin-top:1rem">
+                    <button class="btn btn-warning btn-retroceder" id="btnRetroPreparacion" style="display:none;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)" onclick="retrocederFase('desarme')"><i class="fas fa-arrow-left"></i> Volver a Desarme</button>
+                </div>
+            </div>
+
+            <!-- TAB: PUBLICACIÓN -->
+            <div class="tab-panel" id="panelPublicacion">
+                <div class="phase-help"><i class="fas fa-info-circle"></i> <strong>Publicación:</strong> Seleccione las piezas listas para publicar en la tienda. Puede publicar individualmente o como kit.</div>
+                <div class="form-section-title"><i class="fas fa-store"></i> Piezas Listas para Publicar</div>
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+                    <button class="btn btn-success" id="btnPublicarTodas"><i class="fas fa-upload"></i> Publicar Seleccionadas</button>
+                    <button class="btn btn-primary" id="btnCrearKit"><i class="fas fa-puzzle-piece"></i> Crear Kit</button>
+                </div>
+                <div class="parts-list" id="pubPartsList"></div>
+            </div>
+
+            <!-- TAB: HISTORIAL -->
+            <div class="tab-panel" id="panelHistorial">
+                <div class="form-section-title"><i class="fas fa-clock-rotate-left"></i> Historial de Acciones</div>
+                <div class="timeline" id="timelineContainer"></div>
+            </div>
+            <div class="tab-panel" id="panelReportes">
+                <div class="form-section-title"><i class="fas fa-chart-pie"></i> Reportes del Proceso</div>
+                <div class="kpi-bar" id="reportesKpis" style="margin-bottom:1rem"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="reportesCharts">
+                    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:1rem">
+                        <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.5rem;color:var(--text-primary)">Piezas por Categoría</div>
+                        <div id="chartCategorias"></div>
+                    </div>
+                    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:1rem">
+                        <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.5rem;color:var(--text-primary)">Piezas por Estado</div>
+                        <div id="chartEstados"></div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:1rem">
+                    <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.5rem;color:var(--text-primary)">Resumen Financiero</div>
+                    <div id="reporteFinanciero" style="font-size:0.85rem;color:var(--text-secondary)"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══ MODAL: NUEVO DESARME ═══ -->
+    <div class="modal" id="modalNuevoDesarme">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header">
+                <h3><i class="fas fa-car-burst"></i> Nuevo Desarme</h3>
+                <button class="modal-close" onclick="closeModal('modalNuevoDesarme')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="position:relative">
+                    <label>Buscar vehículo (patente o cliente)</label>
+                    <input type="text" id="buscarVehiculoDesarme" placeholder="Escriba patente, marca o nombre del cliente..." autocomplete="off">
+                    <div id="resultadosVehiculoDesarme" class="typeahead-results"></div>
+                </div>
+                <div id="vehiculoSeleccionado" style="display:none;padding:0.75rem;border:1px solid var(--success);border-radius:8px;background:rgba(34,197,94,0.08);margin-bottom:1rem">
+                    <div style="font-weight:700;color:var(--success);margin-bottom:0.3rem"><i class="fas fa-check-circle"></i> Vehículo seleccionado</div>
+                    <div id="vehSeleccionInfo" style="font-size:0.85rem;color:var(--text-primary)"></div>
+                </div>
+                <input type="hidden" id="nuevoVehiculoId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Motivo del Desarme *</label>
+                        <select id="nuevoMotivo" required>
+                            <option value="">— Seleccionar motivo —</option>
+                            <option value="dano_total">Daño Total</option>
+                            <option value="robo">Robo</option>
+                            <option value="abandono">Abandono</option>
+                            <option value="junk">Chatarra</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Técnico Asignado</label>
+                        <div class="select-wrapper">
+                            <select id="nuevoTecnico" data-linked="empleados"><option value="">— Seleccionar —</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notas Iniciales</label>
+                    <textarea id="nuevoNotas" rows="2" placeholder="Observaciones sobre el estado del vehículo..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalNuevoDesarme')">Cancelar</button>
+                <button class="btn btn-primary" id="btnCrearDesarme"><i class="fas fa-plus"></i> Crear Desarme</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: NUEVA PIEZA ═══ -->
+    <div class="modal" id="modalNuevaPieza">
+        <div class="modal-content modal-pieza" style="max-width:600px">
+            <div class="modal-header">
+                <h3><i class="fas fa-puzzle-piece"></i> Registrar Pieza</h3>
+                <button class="modal-close" onclick="closeModal('modalNuevaPieza')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="position:relative">
+                    <label>Buscar pieza maestra</label>
+                    <input type="text" id="buscarPiezaMaestra" placeholder="Nombre de la pieza..." autocomplete="off">
+                    <div id="resultadosPiezaMaestra" class="typeahead-results"></div>
+                </div>
+                <input type="hidden" id="piezaMaestraId">
+                <div class="form-grid">
+                    <div class="form-group"><label>Nombre de la Pieza *</label><input type="text" id="piezaNombre" required></div>
+                    <div class="form-group"><label>Categoría</label><input type="text" id="piezaCategoria" placeholder="Ej: Motor, Carrocería, Interior..."></div>
+                    <div class="form-group"><label>Código / SKU</label><input type="text" id="piezaCodigo" placeholder="Código interno o de proveedor"></div>
+                    <div class="form-group"><label>Costo Estimado</label><input type="number" id="piezaCosto" step="100" min="0"></div>
+                </div>
+
+                <div class="form-section-title"><i class="fas fa-star"></i> Estado de la Pieza</div>
+                <div class="estado-btns" id="piezaEstadoBtns">
+                    <button type="button" data-estado="Bueno"><i class="fas fa-check-circle"></i> Bueno</button>
+                    <button type="button" data-estado="Malo"><i class="fas fa-times-circle"></i> Malo</button>
+                    <button type="button" data-estado="No Verificado"><i class="fas fa-question-circle"></i> No Verificado</button>
+                </div>
+                <input type="hidden" id="piezaEstado" value="No Verificado">
+
+                <div class="form-section-title"><i class="fas fa-camera"></i> Fotografías</div>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem" id="piezaFotosBtns">
+                    <button class="btn btn-sm btn-secondary" type="button" data-capture="camera" data-target="piezaFoto1"><i class="fas fa-camera"></i> Foto 1</button>
+                    <button class="btn btn-sm btn-secondary" type="button" data-capture="camera" data-target="piezaFoto2"><i class="fas fa-camera"></i> Foto 2</button>
+                    <button class="btn btn-sm btn-secondary" type="button" data-capture="gallery" data-target="piezaFoto3"><i class="fas fa-image"></i> Foto 3</button>
+                </div>
+                <div style="display:flex;gap:0.5rem" id="piezaFotosPreview"></div>
+                <input type="file" id="inputPiezaFoto" accept="image/*" capture="environment" style="display:none">
+                <input type="file" id="inputPiezaGaleria" accept="image/*" style="display:none">
+
+                <div class="form-group" style="margin-top:0.75rem">
+                    <label>Notas</label>
+                    <textarea id="piezaNotas" rows="2" placeholder="Descripción del estado, ubicación, compatibilidad..."></textarea>
+                </div>
+                <div id="piezaUploadProgress" style="display:none;margin-top:0.75rem">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
+                        <span style="font-size:0.78rem;color:var(--text-secondary)"><i class="fas fa-upload"></i> Subiendo...</span>
+                        <span id="piezaProgressText" style="font-size:0.78rem;font-weight:700;color:var(--primary)">0%</span>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.1);border-radius:10px;height:6px;overflow:hidden">
+                        <div id="piezaProgressBar" style="background:linear-gradient(90deg,var(--primary),var(--success));width:0%;height:100%;border-radius:10px;transition:width 0.2s ease"></div>
+                    </div>
+                </div>
+
+                <div class="form-section-title" style="margin-top:1rem"><i class="fas fa-camera"></i> Fotografías de la Pieza</div>
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+                    <label class="btn btn-sm btn-secondary" style="cursor:pointer">
+                        <i class="fas fa-cloud-upload-alt"></i> Subir Fotos
+                        <input type="file" id="piezaUploadFotos" multiple accept="image/*" style="display:none">
+                    </label>
+                </div>
+                <div id="piezaUploadGalleryProgress" style="margin-bottom:0.75rem"></div>
+                <div id="piezaGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:0.5rem"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="btnEliminarPieza" style="display:none" onclick="deletePartFromModal()"><i class="fas fa-trash"></i> Eliminar</button>
+                <button class="btn btn-secondary" onclick="closeModal('modalNuevaPieza')">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarPieza"><i class="fas fa-save"></i> Guardar Pieza</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: INSPECCIÓN DE PREPARACIÓN ═══ -->
+    <div class="modal" id="modalInspeccion">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header">
+                <h3><i class="fas fa-broom"></i> Inspección de Pieza</h3>
+                <button class="modal-close" onclick="closeModal('modalInspeccion')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="inspPiezaId">
+                <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem" id="inspPiezaNombre"></div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Inspección Visual</label>
+                        <select id="inspVisual"><option value="">—</option><option value="Excelente">Excelente</option><option value="Bueno">Bueno</option><option value="Regular">Regular</option><option value="Malo">Malo</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prueba de Funcionamiento</label>
+                        <select id="inspFuncionamiento"><option value="">—</option><option value="Funcional">Funcional</option><option value="Parcial">Parcial</option><option value="No Funcional">No Funcional</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nivel de Limpieza</label>
+                        <select id="inspLimpieza"><option value="">—</option><option value="Limpio">Limpio</option><option value="Necesita Limpieza">Necesita Limpieza</option><option value="Muy Sucio">Muy Sucio</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Resultado Final</label>
+                        <select id="inspResultado"><option value="">—</option><option value="Aprobado">Aprobado para Publicar</option><option value="Requiere Trabajo">Requiere Trabajo Adicional</option><option value="Rechazado">Rechazado</option></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Especificaciones Técnicas</label>
+                    <textarea id="inspSpecs" rows="2" placeholder="Medidas, compatibilidad, año, modelo..."></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Precio Sugerido</label><input type="number" id="inspPrecio" step="100" min="0"></div>
+                    <div class="form-group"><label>Precio Mínimo</label><input type="number" id="inspPrecioMin" step="100" min="0"></div>
+                </div>
+                <div id="inspValorInfo" style="font-size:0.78rem;color:var(--primary);background:rgba(37,99,235,0.06);padding:0.4rem 0.7rem;border-radius:6px;margin-bottom:0.5rem;display:none"></div>
+                <div class="form-group">
+                    <label>Notas de Preparación</label>
+                    <textarea id="inspNotas" rows="2" placeholder="Trabajos realizados, limpieza, reparaciones..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalInspeccion')">Cancelar</button>
+                <button class="btn btn-success" id="btnGuardarInspeccion"><i class="fas fa-check"></i> Guardar Inspección</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: CREAR KIT ═══ -->
+    <div class="modal" id="modalCrearKit">
+        <div class="modal-content" style="max-width:500px">
+            <div class="modal-header">
+                <h3><i class="fas fa-puzzle-piece"></i> Crear Kit de Piezas</h3>
+                <button class="modal-close" onclick="closeModal('modalCrearKit')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>Nombre del Kit *</label><input type="text" id="kitNombre" placeholder="Ej: Kit Motor Completo" required></div>
+                <div class="form-group"><label>Precio del Kit</label><input type="number" id="kitPrecio" step="100" min="0"></div>
+                <div class="form-group">
+                    <label>Piezas para el Kit</label>
+                    <div id="kitPiezasList" style="max-height:200px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:0.5rem"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalCrearKit')">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarKit"><i class="fas fa-save"></i> Crear Kit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: GRUPO DE PIEZAS (crear + ver/editar) ═══ -->
+    <div class="modal" id="modalGrupoPiezas">
+        <div class="modal-content" style="max-width:640px">
+            <div class="modal-header">
+                <h3 id="grupoModalTitle"><i class="fas fa-layer-group"></i> Registrar Grupo de Piezas</h3>
+                <button class="modal-close" onclick="closeModal('modalGrupoPiezas')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Modo crear -->
+                <div id="grupoCreateForm">
+                    <div class="phase-help"><i class="fas fa-info-circle"></i> Agrupe piezas que se extraen juntas (ej: motor completo, caja de cambios).</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Nombre del Grupo *</label><input type="text" id="grupoNombre" placeholder="Ej: Motor Completo, Caja de Cambios..."></div>
+                        <div class="form-group"><label>Categoría</label><input type="text" id="grupoCategoria" readonly style="background:rgba(0,0,0,0.1)"></div>
+                    </div>
+                    <div class="form-section-title"><i class="fas fa-list-check"></i> Piezas incluidas en el grupo</div>
+                    <div id="grupoPiezasChecklist" style="max-height:250px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;margin-top:0.5rem"></div>
+                </div>
+                <!-- Modo ver/editar (oculto por defecto) -->
+                <div id="grupoViewPanel" style="display:none">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Nombre del Grupo</label><input type="text" id="grupoViewNombre"></div>
+                        <div class="form-group"><label>Categoría</label><input type="text" id="grupoViewCategoria"></div>
+                    </div>
+                    <div class="form-section-title"><i class="fas fa-list-check"></i> Piezas del grupo <span class="tab-badge" id="grupoViewCount">0</span></div>
+                    <div id="grupoViewParts" style="max-height:300px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:0.5rem"></div>
+                    <div id="grupoViewUploadProgress" style="margin-top:0.5rem"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalGrupoPiezas')">Cancelar</button>
+                <!-- Botones crear -->
+                <button class="btn btn-primary" id="btnGuardarGrupo" onclick="saveGrupoPiezas()"><i class="fas fa-save"></i> Registrar Grupo</button>
+                <!-- Botones ver/editar -->
+                <button class="btn btn-danger" id="btnEliminarGrupo" style="display:none" onclick="eliminarGrupoActual()"><i class="fas fa-trash"></i> Eliminar Grupo</button>
+                <button class="btn btn-success" id="btnGuardarGrupoEdit" style="display:none" onclick="guardarGrupoEdit()"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+            <a href="desarme_automotriz.html" class="bottom-nav-item active"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="articulos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cube"><i class="fas fa-cube"></i></span><span>Artículos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+    <input type="file" id="inputCameraCapture" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="inputGalleryCapture" accept="image/*" style="display:none">
+
+    <script src="js/common.js?v=20260723120000"></script>
+    <script src="js/desarme_automotriz.js?v=20260723120000"></script>
+    <script src="js/command-palette.js?v=20260723120000"></script>
+</body>
+</html>

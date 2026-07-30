@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260712010000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260712010000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .user-avatar-lg { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; color:#fff; flex-shrink:0; }
+        .perm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
+        .perm-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--bg-elevated); font-size:0.82rem; }
+        .perm-item input { accent-color:var(--primary); }
+        .perm-item.active { background:rgba(75,123,236,0.08); border-color:var(--primary); }
+        .role-card { border:2px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px; cursor:pointer; transition:all .15s; }
+        .role-card:hover { border-color:var(--primary); }
+        .role-card.selected { border-color:var(--primary); background:rgba(75,123,236,0.06); }
+        .role-card .role-name { font-weight:700; font-size:1rem; }
+        .role-card .role-desc { font-size:0.8rem; color:var(--text-secondary); margin-top:4px; }
+        .user-status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+        .user-status-badge.active { background:#dcfce7; color:#166534; }
+        .user-status-badge.inactive { background:#fee2e2; color:#991b1b; }
+        .activity-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-subtle); }
+        .activity-row:last-child { border-bottom:none; }
+        .activity-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0; }
+        .activity-log { max-height:400px; overflow-y:auto; }
+        .solicitudes-badge { display:none; position:absolute; top:-6px; right:-6px; background:#DC2626; color:#fff; font-size:0.65rem; min-width:18px; height:18px; border-radius:9px; align-items:center; justify-content:center; font-weight:700; padding:0 4px; }
+        .guide-banner { padding:12px 16px; background:var(--primary-light); border-radius:var(--radius-md); font-size:0.82rem; color:var(--text-secondary); display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; line-height:1.5; }
+        .guide-banner i { color:var(--primary); font-size:1rem; margin-top:1px; flex-shrink:0; }
+        .guide-banner strong { color:var(--text-primary); }
+        .perm-search { width:100%; padding:8px 12px 8px 36px; border:1px solid var(--border-color); border-radius:6px; font-size:0.82rem; margin-bottom:12px; }
+        .perm-module-header { display:flex; align-items:center; justify-content:space-between; padding:8px 0 4px; cursor:pointer; user-select:none; }
+        .perm-module-header:hover { opacity:0.8; }
+        .perm-module-header label { cursor:pointer; font-size:0.78rem; color:var(--text-secondary); }
+        .perm-module-header label input { margin-right:4px; accent-color:var(--primary); }
+        .pwd-strength { height:4px; border-radius:2px; margin-top:6px; transition:all .2s; }
+        .pwd-strength-bar { height:100%; border-radius:2px; transition:all .3s; }
+        .nivel-help { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:var(--primary-light); color:var(--primary); font-size:0.6rem; cursor:help; margin-left:4px; position:relative; }
+        .nivel-help:hover + .nivel-tooltip, .nivel-tooltip:hover { display:block; }
+        .nivel-tooltip { display:none; position:absolute; left:0; top:calc(100% + 4px); background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:10px 14px; font-size:0.75rem; line-height:1.6; z-index:100; min-width:260px; box-shadow:0 4px 16px rgba(0,0,0,.12); color:var(--text-secondary); font-weight:400; }
+        .nivel-tooltip strong { color:var(--text-primary); }
+        .help-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .help-modal { background:var(--bg-card); border-radius:var(--radius-lg); padding:28px; max-width:560px; width:92%; max-height:80vh; overflow-y:auto; }
+        .help-modal h2 { font-size:1.1rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .help-modal h3 { font-size:0.9rem; margin:16px 0 8px; color:var(--primary); }
+        .help-modal p { font-size:0.82rem; line-height:1.6; color:var(--text-secondary); margin:0 0 8px; }
+        .help-modal ul { font-size:0.82rem; line-height:1.7; color:var(--text-secondary); padding-left:20px; margin:0 0 8px; }
+        .user-count-badge { font-size:0.65rem; background:rgba(75,123,236,0.1); color:var(--primary); padding:2px 8px; border-radius:10px; margin-left:6px; }
+        .activity-filters { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+        .activity-filters select, .activity-filters input { padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-size:0.78rem; }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-users"><i class="fas fa-users-gear"></i></span> Usuarios</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, usuario o email...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-secondary" id="btnRoles"><i class="fas fa-shield-halved"></i> Roles</button>
+                    <button class="btn btn-secondary" id="btnSolicitudes" style="position:relative;">
+                        <i class="fas fa-user-plus"></i> Solicitudes
+                        <span class="solicitudes-badge" id="solicitudesBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#DC2626;color:#fff;font-size:0.65rem;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;font-weight:700;padding:0 4px;"></span>
+                    </button>
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="guide-banner" id="listGuide">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <strong>Gestión de Usuarios</strong> — Administre las cuentas de acceso al ERP. Cree usuarios, asigne roles y permisos, revise la actividad reciente. Las <strong>solicitudes de registro</strong> pendientes aparecen con un indicador rojo en el botón.
+                </div>
+            </div>
+            <div id="listSummary" style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:12px;"></div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ SOLICITUDES VIEW ═══ -->
+        <div id="solicitudesView" style="display:none;">
+            <div class="data-toolbar">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <button class="btn btn-secondary" id="btnBackFromSolicitudes"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <h2 style="font-size:1.1rem;font-weight:600;margin:0;">Solicitudes de Registro</h2>
+                </div>
+                <div class="toolbar-actions">
+                    <select id="solicitudesFilter" style="padding:6px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:0.82rem;">
+                        <option value="pendiente">Pendientes</option>
+                        <option value="aprobada">Aprobadas</option>
+                        <option value="rechazada">Rechazadas</option>
+                        <option value="">Todas</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btnRefreshSolicitudes"><i class="fas fa-sync"></i></button>
+                </div>
+            </div>
+            <div id="solicitudesContainer">
+                <div style="padding:40px;text-align:center;color:var(--text-secondary);">Cargando solicitudes...</div>
+            </div>
+            <div class="guide-banner" style="margin-top:16px;">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Flujo de solicitudes</strong> — Los usuarios se registran desde la página pública. Una solicitud pendiente puede <strong>aprobarse</strong> (se crea la cuenta con rol y contraseña) o <strong>rechazarse</strong> (se notifica al solicitante).
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FICHA SOLICITUD ═══ -->
+        <div class="ficha-container" id="fichaSolicitud" style="display:none;">
+            <div class="ficha-header">
+                <div class="user-avatar-lg" id="solAvatar" style="background:linear-gradient(135deg,#D97706,#F59E0B);">?</div>
+                <div class="ficha-info">
+                    <h2 id="solTitle">—</h2>
+                    <div class="ficha-sub" id="solSub">—</div>
+                    <div class="contact-links" id="solContacts"></div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackFromSolicitud"><i class="fas fa-arrow-left"></i> Volver</button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs">
+                <div class="ficha-tab active" data-tab="detalle" onclick="switchSolTab(this, 'detalle')"><i class="fas fa-info-circle"></i> Detalle</div>
+                <div class="ficha-tab" data-tab="aprobar" onclick="switchSolTab(this, 'aprobar')"><i class="fas fa-check-circle"></i> Aprobar</div>
+            </div>
+
+            <!-- Tab: Detalle -->
+            <div class="ficha-panel active" id="tabSolDetalle">
+                <div id="solDetalleContent" style="padding:16px;"></div>
+            </div>
+
+            <!-- Tab: Aprobar -->
+            <div class="ficha-panel" id="tabSolAprobar">
+                <div id="solAprobarContent" style="padding:16px;">
+                    <div style="margin-bottom:16px;">
+                        <label style="font-weight:600;font-size:0.85rem;display:block;margin-bottom:6px;">Rol a asignar *</label>
+                        <select id="solRolSelect" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;">
+                            <option value="">— Seleccionar rol —</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="font-weight:600;font-size:0.85rem;display:block;margin-bottom:6px;">Username *</label>
+                        <input type="text" id="solUsername" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;" placeholder="Se genera automáticamente si se deja vacío">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="font-weight:600;font-size:0.85rem;display:block;margin-bottom:6px;">Contraseña temporal *</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="solPassword" style="flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;" placeholder="Mínimo 6 caracteres">
+                            <button class="btn btn-secondary" id="btnGenPassword" type="button"><i class="fas fa-dice"></i> Generar</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:20px;">
+                        <button class="btn btn-danger" id="btnRechazarSolicitud"><i class="fas fa-times"></i> Rechazar</button>
+                        <div style="flex:1;"></div>
+                        <button class="btn btn-primary" id="btnAprobarSolicitud"><i class="fas fa-check"></i> Aprobar y Crear Usuario</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FICHA USUARIO ═══ -->
+        <div class="ficha-container" id="fichaContainer" style="display:none">
+            <div class="ficha-header">
+                <div class="user-avatar-lg" id="fichaAvatar" style="background:linear-gradient(135deg,var(--primary),var(--accent));">UU</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                    <div class="contact-links" id="fichaContacts"></div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><i class="fas fa-user"></i> Datos</div>
+                <div class="ficha-tab" data-tab="cuenta"><i class="fas fa-key"></i> Cuenta</div>
+                <div class="ficha-tab" data-tab="permisos"><i class="fas fa-shield-halved"></i> Permisos</div>
+                <div class="ficha-tab" data-tab="actividad"><i class="fas fa-clock-rotate-left"></i> Actividad</div>
+            </div>
+
+            <!-- Tab: Datos -->
+            <div class="ficha-panel active" id="tabDatos">
+                <div class="guide-banner" style="margin-bottom:12px;">
+                    <i class="fas fa-user-edit"></i>
+                    <div>
+                        <strong>Datos personales</strong> — Información básica del usuario. El <strong>Tipo</strong> determina si es empleado, cliente o administrador. El <strong>Nivel</strong> define el alcance de acceso general (ver tabla de referencia).
+                    </div>
+                </div>
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <input type="hidden" name="action" value="save">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre *</label>
+                            <input type="text" name="nombre" id="usr-nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido</label>
+                            <input type="text" name="apellido" id="usr-apellido">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" id="usr-email">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="text" name="telefono" id="usr-telefono">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo *</label>
+                            <select name="tipo" id="usr-tipo" required>
+                                <option value="empleado">Empleado — Personal del taller</option>
+                                <option value="cliente">Cliente — Usuarios externos</option>
+                                <option value="admin">Administrador — Acceso elevado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="position:relative;">
+                            <label>Nivel de acceso
+                                <span class="nivel-help">?
+                                    <span class="nivel-tooltip">
+                                        <strong>Nivel 1 — Administrador:</strong> Acceso total, config del sistema, permisos admin<br>
+                                        <strong>Nivel 2 — Gerente:</strong> Gestión completa excepto config admin<br>
+                                        <strong>Nivel 3 — Recepcionista:</strong> Recepción, clientes, OTs, agenda<br>
+                                        <strong>Nivel 4 — Técnico:</strong> Ejecución OT, inventario, diagnósticos<br>
+                                        <strong>Nivel 5 — Vendedor:</strong> Presupuestos, ventas, clientes<br>
+                                        <strong>Nivel 6 — Solo Lectura:</strong> Consulta sin modificar datos
+                                    </span>
+                                </span>
+                            </label>
+                            <input type="number" name="nivel" id="usr-nivel" min="1" max="6" value="2">
+                        </div>
+                    </div>
+                    <div id="nivelPreview" style="padding:10px 14px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:8px;margin-bottom:12px;font-size:0.8rem;color:var(--text-secondary);display:none;"></div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Cuenta -->
+            <div class="ficha-panel" id="tabCuenta">
+                <div class="guide-banner" style="margin-bottom:12px;">
+                    <i class="fas fa-key"></i>
+                    <div>
+                        <strong>Cuenta de acceso</strong> — Configure el username, contraseña y rol del usuario. La contraseña se guarda en texto cifrado (bcrypt). Un usuario <strong>inactivo</strong> no puede iniciar sesión aunque tenga contraseña válida.
+                    </div>
+                </div>
+                <div id="cuentaStatus" style="padding:10px 14px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:8px;margin-bottom:16px;font-size:0.8rem;display:none;"></div>
+                <form id="cuentaForm">
+                    <input type="hidden" name="action" value="save_cuenta">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Username *</label>
+                            <input type="text" name="username" id="usr-username" required autocomplete="off">
+                            <small style="color:var(--text-secondary);font-size:0.75rem;">Solo minúsculas, números y guiones bajos</small>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblPassword">Contraseña *</label>
+                            <div style="position:relative;">
+                                <input type="password" name="password" id="usr-password" autocomplete="new-password">
+                                <button type="button" onclick="togglePwd('usr-password',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <small id="pwdHint" style="color:var(--text-secondary);"></small>
+                            <div class="pwd-strength" id="pwdStrength" style="display:none;background:var(--border-color);"><div class="pwd-strength-bar" id="pwdStrengthBar"></div></div>
+                            <div id="pwdStrengthLabel" style="font-size:0.7rem;margin-top:3px;display:none;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol asignado</label>
+                            <select name="rol_id" id="usr-rol">
+                                <option value="">— Sin rol —</option>
+                            </select>
+                            <small id="rolDesc" style="color:var(--text-secondary);font-size:0.75rem;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select name="activo" id="usr-activo">
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary" id="btnSaveCuenta"><i class="fas fa-save"></i> Guardar Cuenta</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Permisos -->
+            <div class="ficha-panel" id="tabPermisos">
+                <div class="guide-banner" style="margin-bottom:12px;">
+                    <i class="fas fa-shield-halved"></i>
+                    <div>
+                        <strong>Permisos individuales</strong> — Seleccione un rol predefinido como base, luego ajuste permisos específicos. Al guardar, estos permisos <strong>reemplazan</strong> los del rol. Si deja la lista vacía, el usuario mantiene los permisos de su rol.
+                    </div>
+                </div>
+                <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <label style="font-weight:600;font-size:0.82rem;">Rol predefinido:</label>
+                    <select id="permRolePreset" style="min-width:180px;padding:6px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.82rem;">
+                        <option value="">— Personalizar —</option>
+                    </select>
+                    <button class="btn btn-sm btn-secondary" id="btnApplyRole"><i class="fas fa-check"></i> Aplicar</button>
+                    <div style="flex:1;"></div>
+                    <span id="permCount" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                    <button class="btn btn-sm btn-primary" id="btnSavePermisos"><i class="fas fa-save"></i> Guardar</button>
+                </div>
+                <div style="position:relative;margin-bottom:8px;">
+                    <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:0.8rem;"></i>
+                    <input type="text" class="perm-search" id="permSearchInput" placeholder="Buscar permisos (ej: clientes, crear, eliminar)..." style="padding-left:30px;">
+                </div>
+                <div class="perm-grid" id="permGrid"></div>
+            </div>
+
+            <!-- Tab: Actividad -->
+            <div class="ficha-panel" id="tabActividad">
+                <div class="guide-banner" style="margin-bottom:12px;">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <div>
+                        <strong>Registro de actividad</strong> — Historial de acciones del usuario: inicios de sesión, creaciones, modificaciones y eliminaciones. Útil para auditoría y seguimiento de uso del sistema.
+                    </div>
+                </div>
+                <div class="activity-filters" id="activityFilters">
+                    <select id="activityTypeFilter">
+                        <option value="">Todas las acciones</option>
+                        <option value="login">Inicios de sesión</option>
+                        <option value="create">Creaciones</option>
+                        <option value="update">Modificaciones</option>
+                        <option value="delete">Eliminaciones</option>
+                    </select>
+                </div>
+                <div class="activity-log" id="activityLog">
+                    <div style="padding:20px;text-align:center;color:var(--text-secondary);">Cargando actividad...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══ MODAL ROLES ═══ -->
+    <div class="modal-overlay" id="rolesModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+        <div style="background:var(--bg-card);border-radius:var(--radius-lg);padding:24px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <h2 style="font-size:1.1rem;"><i class="fas fa-shield-halved" style="color:var(--primary);"></i> Roles del Sistema</h2>
+                <button onclick="el('rolesModal').style.display='none'" style="background:none;border:none;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 16px;">Cada rol define un conjunto de permisos base. Los permisos individuales pueden agregarse o quitarse por usuario desde la pestaña Permisos.</p>
+            <div id="rolesList"></div>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL HELP ═══ -->
+    <div class="help-modal-overlay" id="helpModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+        <div class="help-modal">
+            <h2><i class="fas fa-question-circle" style="color:var(--primary);"></i> Ayuda — Gestión de Usuarios</h2>
+            <p>Este módulo permite administrar las cuentas de acceso al ERP de Figuetronic. Cada usuario tiene un username, contraseña, rol y nivel de acceso.</p>
+
+            <h3>Crear un usuario</h3>
+            <p>Haga clic en <strong>"Nuevo"</strong>, complete los datos personales (nombre, email, tipo) y guarde. Luego vaya a la pestaña <strong>Cuenta</strong> para configurar username, contraseña y rol.</p>
+
+            <h3>Tipos de usuario</h3>
+            <ul>
+                <li><strong>Empleado</strong> — Personal interno del taller (recepcionistas, técnicos, etc.)</li>
+                <li><strong>Cliente</strong> — Usuarios externos con acceso al portal</li>
+                <li><strong>Administrador</strong> — Acceso elevado para gestión del sistema</li>
+            </ul>
+
+            <h3>Niveles de acceso</h3>
+            <ul>
+                <li><strong>Nivel 1 (Admin):</strong> Acceso total — configuración, permisos, auditoría</li>
+                <li><strong>Nivel 2 (Gerente):</strong> Gestión completa excepto configuración admin</li>
+                <li><strong>Nivel 3 (Recepcionista):</strong> Recepción, clientes, órdenes de trabajo, agenda</li>
+                <li><strong>Nivel 4 (Técnico):</strong> Ejecución OT, inventario, diagnósticos</li>
+                <li><strong>Nivel 5 (Vendedor):</strong> Presupuestos, ventas, clientes</li>
+                <li><strong>Nivel 6 (Solo Lectura):</strong> Consulta sin modificar datos</li>
+            </ul>
+
+            <h3>Roles y permisos</h3>
+            <p>Los <strong>roles</strong> son conjuntos de permisos predefinidos (Recepcionista, Técnico, etc.). Puede asignar permisos adicionales o quitar permisos específicos desde la pestaña <strong>Permisos</strong> de cada usuario.</p>
+
+            <h3>Solicitudes de registro</h3>
+            <p>Los usuarios se registran desde la página pública (<code>/admin/registro.html</code>). Las solicitudes pendientes aparecen con un indicador rojo. Puede aprobarlas (creando la cuenta) o rechazarlas.</p>
+
+            <h3>Actividad</h3>
+            <p>La pestaña <strong>Actividad</strong> muestra un registro de las acciones del usuario: inicios de sesión, creaciones, modificaciones y eliminaciones.</p>
+
+            <div style="text-align:right;margin-top:20px;">
+                <button class="btn btn-primary" onclick="el('helpModal').style.display='none'"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="imgModal" style="display:none;" onclick="this.style.display='none'">
+        <div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">
+            <img id="imgModalSrc" style="max-width:100%;max-height:90vh;border-radius:var(--radius-md);">
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+    <script src="js/common.js?v=20260714090000"></script>
+    <script src="js/usuarios.js?v=20260712010000"></script>
+    <script src="js/command-palette.js?v=20260712010000"></script>
+</body>
+</html>

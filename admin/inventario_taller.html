@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Taller - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-toolbox"><i class="fas fa-suitcase"></i></span> Inventario Taller</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+        <div class="module-hero cyan">
+            <div class="mh-icon"><span class="nav-icon-box icon-toolbox"><i class="fas fa-suitcase"></i></span></div>
+            <h2>Inventario del Taller</h2>
+            <div class="mh-subtitle">Registra herramientas, muebles, equipos y demás bienes del taller. Cada artículo recibe una identificación única para etiquetado físico.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Inventario de bienes del taller con control de zona, categoría, utilidad y valorización.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Zonas Taller</span><span class="mc-tag">Datos y Reportes</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Identificación</div>
+                <div class="mc-value">Cada artículo recibe un código único (IT-XXXXX) para etiquetado físico.</div>
+            </div>
+        </div>
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, identificación, categoría o zona...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo Artículo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">IT</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete" data-perm="inventario_taller:eliminar"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-toolbox"><i class="fas fa-suitcase"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div id="identificacionBadge" style="display:none;padding:0.5rem 1rem;background:var(--bg-sidebar);border-radius:8px;margin-bottom:1rem;border:1px solid var(--border-color);">
+                        <span style="font-size:0.75rem;color:var(--text-secondary);">Identificación:</span>
+                        <div id="identificacionValue" style="font-size:1.2rem;font-weight:700;color:var(--accent);font-family:monospace;"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Nombre <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required placeholder="Ej: Llave inglesa 1/2, Compresor..."></div>
+                        <div class="form-group zona-picker-group">
+                            <label>Zona Taller</label>
+                            <div class="zona-picker">
+                                <button type="button" class="zona-picker-trigger" id="zonaPickerTrigger">
+                                    <span class="zona-picker-empty" id="zonaPickerEmpty"><span class="nav-icon-box icon-location"><i class="fas fa-location-dot"></i></span> Seleccionar zona...</span>
+                                    <span class="zona-picker-selected" id="zonaPickerSelected" style="display:none"><img id="zonaPickerThumb" src="" alt=""><span id="zonaPickerLabel"></span></span>
+                                    <i class="fas fa-chevron-down zona-picker-caret"></i>
+                                </button>
+                                <button type="button" class="btn-add-option" id="btnAddZona" title="Crear nueva zona"><i class="fas fa-plus"></i> Nuevo</button>
+                                <select id="zona_taller_id" name="zona_taller_id" style="display:none"><option value="">— Seleccionar zona —</option></select>
+                            </div>
+                            <div class="zona-picker-preview" id="zonaPickerPreview" style="display:none">
+                                <img id="zonaPickerPreviewImg" src="" alt="">
+                                <div class="zona-picker-preview-info">
+                                    <strong id="zonaPickerPreviewName"></strong>
+                                    <small id="zonaPickerPreviewDesc"></small>
+                                    <button type="button" class="zona-picker-clear" id="zonaPickerClear" title="Quitar selección"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Categoría</label><div class="select-wrapper"><select id="categoria" name="categoria" data-category="categoria_inventario"><option value="">— Seleccionar —</option></select><button type="button" class="btn-add-option" title="Gestionar categorías"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group full-width"><label>Detalles</label><textarea id="detalles" name="detalles" rows="2" placeholder="Marca, modelo, número de serie..."></textarea></div>
+                        <div class="form-group full-width"><label>Utilidad</label><div class="select-wrapper"><select id="utilidad" name="utilidad" data-category="utilidad_inventario"><option value="">— Seleccionar —</option></select><button type="button" class="btn-add-option" title="Gestionar utilidades"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Precio Avaluado ($)</label><input type="number" step="any" min="0" id="precio_avaluado" name="precio_avaluado" placeholder="0"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Selector de Zona con vista previa -->
+    <div class="modal" id="zonaPickerModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><span class="nav-icon-box icon-location"><i class="fas fa-location-dot"></i></span> Seleccionar Zona</h3>
+                <button type="button" class="modal-close" id="zonaPickerClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-wrap" style="margin-bottom:0.75rem;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="zonaPickerSearch" placeholder="Buscar zona por nombre...">
+                </div>
+                <div class="zona-picker-grid" id="zonaPickerGrid">
+                    <div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-spinner fa-spin"></i> Cargando zonas...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/wizard_zona_taller.js?v=20260706050000"></script>
+    <script src="js/inventario_taller.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

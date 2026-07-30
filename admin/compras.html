@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras (Egresos) - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-cart"><i class="fas fa-cart-shopping"></i></span> Compras (Egresos)</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+                <div class="module-hero red">
+            <div class="mh-icon"><span class="nav-icon-box icon-cart"><i class="fas fa-cart-shopping"></i></span></div>
+            <h2>Compras</h2>
+            <div class="mh-subtitle">Registro de compras realizadas, pagos parciales o totales, control de deuda con proveedores e historial de transacciones.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Registra cada compra con su proveedor, monto, forma de pago y estado. Controla pagos parciales y saldo pendiente. Actualiza el inventario al recibir mercadería.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Proveedores</span><span class="mc-tag">Órdenes de Compra</span><span class="mc-tag">Artículos</span><span class="mc-tag">Cuentas Bancarias</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Pagos</div>
+                <div class="mc-tags"><span class="mc-tag accent">Pagos</span><span class="mc-tag">Deuda</span><span class="mc-tag accent">Proveedor</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Registrar compra con proveedor. Luego detallar artículos y montos, registrar pagos parciales y finalmente cerrar al saldar deuda.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Registrar compra con proveedor</span><span class="mhe-step"><span class="step-num">2</span> Detallar artículos y montos</span><span class="mhe-step"><span class="step-num">3</span> Registrar pagos parciales</span><span class="mhe-step"><span class="step-num">4</span> Cerrar al saldar deuda</span></div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar compra...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">CP</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-accent" id="btnFichaPdf" style="display:none"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-cart"><i class="fas fa-cart-shopping"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Concepto de la Compra</label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group"><label>Proveedor</label><select id="proveedor_id" name="proveedor_id" data-linked="proveedores"><option value="">— Seleccione —</option></select></div>
+                        <div class="form-group"><label>Fecha</label><input type="date" id="fecha" name="fecha"></div>
+                        <div class="form-group"><label>Forma de Pago</label><div class="select-wrapper"><select id="forma_pago" name="forma_pago" data-category="forma_pago"><option value="">— Seleccione —</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Cuenta Bancaria</label><select id="cuenta_bancaria_id" name="cuenta_bancaria_id" data-linked="cuentas_bancarias"><option value="">— Seleccione —</option></select></div>
+                        <div class="form-group"><label>Monto Total ($)</label><input type="number" step="any" id="valor" name="valor" placeholder="0"></div>
+                        <div class="form-group"><label>Nº Factura / Boleta</label><input type="text" id="numero_documento" name="numero_documento" placeholder="Opcional"></div>
+                        <div class="form-group"><label>Estado de Pago</label><select id="estado_pago" name="estado_pago"><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option></select></div>
+                        <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="fecha_vencimiento" name="fecha_vencimiento"></div>
+                        <div class="form-group full-width" id="paymentSection" style="display:none;background:var(--bg-input);padding:1rem;border-radius:8px;border:1px solid var(--border-color);">
+                            <label>Estado actual:</label>
+                            <span id="paymentStatusDisplay" style="font-weight:bold;margin-right:1rem;"></span>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="registrarPago('compras', document.getElementById('record_id').value)">Registrar Pago</button>
+                        </div>
+                        <div class="form-group full-width"><label>Detalle de la Compra</label><textarea id="descripcion" name="descripcion" rows="3"></textarea></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados (clic para ver):</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone"><i class="fas fa-cloud-upload-alt"></i><p>Arrastra archivos o toca para seleccionar</p></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/compras.js?v=20260710050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

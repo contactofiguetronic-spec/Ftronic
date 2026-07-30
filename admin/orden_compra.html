@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes de Compra - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260707070000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260707070000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-file"><i class="fas fa-file-invoice"></i></span> Órdenes de Compra</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+                <div class="module-hero rose">
+            <div class="mh-icon"><span class="nav-icon-box icon-file"><i class="fas fa-file-invoice"></i></span></div>
+            <h2>Órdenes de Compra</h2>
+            <div class="mh-subtitle">Genera órdenes de compra a proveedores con ítems, cantidades, precios y seguimiento de estados de entrega.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Emite órdenes formales de compra a proveedores. Controla estados: pendiente, enviada, parcialmente recibida, completada. Vincula con el inventario.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Proveedores</span><span class="mc-tag">Compras</span><span class="mc-tag">Artículos</span><span class="mc-tag">Insumos</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Procurement</div>
+                <div class="mc-tags"><span class="mc-tag accent">Procurement</span><span class="mc-tag">Pedidos</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Seleccionar proveedor. Luego agregar artículos a comprar, enviar orden al proveedor y finalmente registrar recepción de mercadería.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Seleccionar proveedor</span><span class="mhe-step"><span class="step-num">2</span> Agregar artículos a comprar</span><span class="mhe-step"><span class="step-num">3</span> Enviar orden al proveedor</span><span class="mhe-step"><span class="step-num">4</span> Registrar recepción de mercadería</span></div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por folio, proveedor o estado...">
+                </div>
+                <div class="estado-filters" id="estadoFilters">
+                    <button class="filter-btn active" data-estado="">Todas</button>
+                    <button class="filter-btn" data-estado="solicitado">Solicitadas</button>
+                    <button class="filter-btn" data-estado="en_cotizacion">En Cotización</button>
+                    <button class="filter-btn" data-estado="aprobada">Aprobadas</button>
+                    <button class="filter-btn" data-estado="asignada">Asignadas</button>
+                    <button class="filter-btn" data-estado="recibida">Recibidas</button>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nueva Solicitud</button>
+                </div>
+            </div>
+
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA PANEL ═══ -->
+        <div class="ficha-container" id="fichaContainer" style="display:none;">
+            <div class="ficha-header">
+                <div class="ficha-avatar gradient-rose" id="fichaAvatar">OC</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-accent" id="btnFichaPdf" style="display:none;"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><i class="fas fa-file-invoice"></i> Datos</div>
+                <div class="ficha-tab" data-tab="items"><i class="fas fa-boxes-stacked"></i> Ítems</div>
+                <div class="ficha-tab" data-tab="cotizacion"><i class="fas fa-calculator"></i> Cotización</div>
+                <div class="ficha-tab" data-tab="asignacion"><i class="fas fa-user-check"></i> Asignación</div>
+                <div class="ficha-tab" data-tab="seguimiento"><i class="fas fa-route"></i> Seguimiento</div>
+                <div class="ficha-tab" data-tab="multimedia"><i class="fas fa-photo-video"></i> Multimedia</div>
+            </div>
+
+            <!-- TAB: DATOS -->
+            <div class="ficha-panel active" id="tabdatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <input type="hidden" name="items_json" id="items_json">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Folio</label>
+                            <input type="text" id="folioDisplay" class="form-control" readonly placeholder="Se asigna al guardar">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Emisión</label>
+                            <input type="date" id="fecha_emision" name="fecha_emision" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Proveedor</label>
+                            <select id="proveedor_id" name="proveedor_id" data-linked="proveedores">
+                                <option value="">— Sin proveedor —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Solicitante</label>
+                            <select id="solicitante_empleado_id" name="solicitante_empleado_id" data-linked="empleados">
+                                <option value="">— Sin asignar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="estado" name="estado">
+                                <option value="solicitado">Solicitado</option>
+                                <option value="en_cotizacion">En Cotización</option>
+                                <option value="aprobada">Aprobada</option>
+                                <option value="asignada">Asignada</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="recibida_parcial">Recibida Parcial</option>
+                                <option value="recibida">Recibida</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Origen</label>
+                            <select id="origen_tipo" name="origen_tipo">
+                                <option value="manual">Manual</option>
+                                <option value="ejecucion_ot">Ejecución OT</option>
+                                <option value="tarea">Tarea</option>
+                                <option value="diagnostico">Diagnóstico</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Entrega Est.</label>
+                            <input type="date" id="fecha_entrega_estimada" name="fecha_entrega_estimada">
+                        </div>
+                        <div class="form-group">
+                            <label>Forma de Pago</label>
+                            <select id="forma_pago" name="forma_pago">
+                                <option value="">— No definido —</option>
+                                <option value="contado">Contado</option>
+                                <option value="credito_30">Crédito 30 días</option>
+                                <option value="credito_60">Crédito 60 días</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Observaciones</label>
+                            <textarea id="observaciones" name="observaciones" rows="3" placeholder="Observaciones o instrucciones adicionales..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB: ÍTEMS -->
+            <div class="ficha-panel" id="tabitems">
+                <div class="form-section">
+                    <h3><i class="fas fa-boxes-stacked"></i> Ítems de la Solicitud</h3>
+                    <div class="item-editor-toolbar">
+                        <div class="form-group" style="flex:1; margin:0;">
+                            <label style="font-size:0.7rem;">Tipo</label>
+                            <select id="producto_tipo" class="form-control">
+                                <option value="articulo">Artículo (repuesto)</option>
+                                <option value="insumo">Insumo</option>
+                                <option value="herramienta">Herramienta</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div style="flex:3; display:flex; gap:0.5rem; align-items:end;">
+                            <div style="flex:1;">
+                                <label style="font-size:0.7rem;">Producto / Nombre</label>
+                                <input type="text" id="producto_nombre" class="form-control" placeholder="Escriba o busque producto...">
+                                <input type="hidden" id="producto_id">
+                            </div>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btnBuscarProducto" style="margin-bottom:0;height:38px;flex:none;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="item-editor-row">
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem;">Cantidad</label>
+                            <input type="number" id="cantidad_solicitada" value="1" min="1" class="form-control">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem;">Valor Unit. ($)</label>
+                            <input type="number" id="valor_unitario" placeholder="0" step="any" class="form-control">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem;">Descripción</label>
+                            <input type="text" id="item_descripcion" class="form-control" placeholder="Detalle opcional...">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-success" id="btnAddItem" style="margin-bottom:0;height:38px;flex:none;align-self:end;">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Producto</th>
+                                <th style="width:80px;text-align:center;">Cant.</th>
+                                <th style="width:120px;text-align:right;">Valor Unit.</th>
+                                <th style="width:140px;text-align:right;">Subtotal</th>
+                                <th style="width:50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <tr><td colspan="6" class="empty-state"><i class="fas fa-box-open"></i> Sin ítems agregados</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="totals-bar">
+                    <div class="total-row"><span>Subtotal:</span><span id="subtotalDisplay">$0</span></div>
+                    <div class="total-row"><span>Impuesto:</span><span id="impuestoDisplay">$0</span></div>
+                    <div class="total-row"><span>Descuento:</span><span id="descuentoDisplay">$0</span></div>
+                    <div class="total-row total-final"><span>Total:</span><span id="totalDisplay">$0</span></div>
+                </div>
+
+                <div class="actions" style="margin-top:1rem;">
+                    <button type="button" class="btn btn-primary" id="btnSaveItems"><i class="fas fa-save"></i> Guardar Ítems</button>
+                </div>
+            </div>
+
+            <!-- TAB: COTIZACIÓN -->
+            <div class="ficha-panel" id="tabcotizacion">
+                <div class="form-section">
+                    <h3><i class="fas fa-calculator"></i> Análisis de Cotización</h3>
+                    <div class="form-group">
+                        <label>Notas / Cotización del Proveedor</label>
+                        <textarea id="cotizacion" name="cotizacion" rows="8" placeholder="Ingrese análisis de cotización, comparativas, notas del proveedor..."></textarea>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-primary" id="btnSaveCotizacion"><i class="fas fa-save"></i> Guardar Cotización</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ASIGNACIÓN -->
+            <div class="ficha-panel" id="tabasignacion">
+                <div class="form-section">
+                    <h3><i class="fas fa-user-check"></i> Asignar Responsable</h3>
+                    <div class="form-group">
+                        <label>Empleado Responsable <span class="required-dot">*</span></label>
+                        <select id="asignado_empleado_id" data-linked="empleados">
+                            <option value="">— Seleccione empleado —</option>
+                        </select>
+                    </div>
+                    <p class="form-hint">Al asignar se creará automáticamente una Tarea en el módulo de Tareas Diarias para el seguimiento de esta compra.</p>
+                    <div class="actions">
+                        <button type="button" class="btn btn-primary" id="btnAsignar"><i class="fas fa-user-check"></i> Asignar y Crear Tarea</button>
+                    </div>
+                </div>
+
+                <div class="assigned-info" id="assignedInfo" style="display:none;">
+                    <div class="form-section">
+                        <h3><i class="fas fa-check-circle"></i> Responsable Asignado</h3>
+                        <div id="assignedCard"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: SEGUIMIENTO -->
+            <div class="ficha-panel" id="tabseguimiento">
+                <div class="form-section">
+                    <h3><i class="fas fa-route"></i> Cambiar Estado</h3>
+                    <div class="estado-flow" id="estadoFlow">
+                        <button class="estado-step" data-estado="solicitado"><span class="step-num">1</span>Solicitado</button>
+                        <button class="estado-step" data-estado="en_cotizacion"><span class="step-num">2</span>En Cotización</button>
+                        <button class="estado-step" data-estado="aprobada"><span class="step-num">3</span>Aprobada</button>
+                        <button class="estado-step" data-estado="asignada"><span class="step-num">4</span>Asignada</button>
+                        <button class="estado-step" data-estado="en_proceso"><span class="step-num">5</span>En Proceso</button>
+                        <button class="estado-step" data-estado="recibida"><span class="step-num">6</span>Recibida</button>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label>Nuevo Estado</label>
+                        <select id="nuevoEstado">
+                            <option value="solicitado">Solicitado</option>
+                            <option value="en_cotizacion">En Cotización</option>
+                            <option value="aprobada">Aprobada</option>
+                            <option value="asignada">Asignada</option>
+                            <option value="en_proceso">En Proceso</option>
+                            <option value="recibida_parcial">Recibida Parcial</option>
+                            <option value="recibida">Recibida</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Recibir Cantidades (si aplica)</label>
+                        <div id="recibirItemsContainer"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-primary" id="btnCambiarEstado"><i class="fas fa-sync-alt"></i> Actualizar Estado</button>
+                    </div>
+                </div>
+
+                <div class="form-section" style="margin-top:1.5rem;">
+                    <h3><i class="fas fa-history"></i> Historial</h3>
+                    <div class="timeline" id="historialContainer">
+                        <div class="empty-state"><i class="fas fa-history"></i> Sin historial</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: MULTIMEDIA -->
+            <div class="ficha-panel" id="tabmultimedia">
+                <div class="form-section">
+                    <h3><i class="fas fa-photo-video"></i> Archivos Adjuntos</h3>
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos o haz clic para seleccionar</p>
+                        <input type="file" id="mediaFileInput" multiple style="display:none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ MODAL: NUEVA SOLICITUD ═══ -->
+        <div class="modal" id="ocModal">
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-file-invoice"></i> Nueva Solicitud de Compra</h3>
+                    <button type="button" class="modal-close" id="ocModalClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Fecha Emisión</label>
+                            <input type="date" id="modal_fecha_emision">
+                        </div>
+                        <div class="form-group">
+                            <label>Proveedor Sugerido</label>
+                            <select id="modal_proveedor_id" data-linked="proveedores">
+                                <option value="">— Sin proveedor —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Solicitante</label>
+                            <select id="modal_solicitante_id" data-linked="empleados">
+                                <option value="">— Sin asignar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Origen</label>
+                            <select id="modal_origen_tipo">
+                                <option value="manual">Manual</option>
+                                <option value="ejecucion_ot">Ejecución OT</option>
+                                <option value="tarea">Tarea</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Observaciones</label>
+                            <textarea id="modal_observaciones" rows="2" placeholder="Motivo de la solicitud..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-section" style="margin-top:1rem;">
+                        <h4><i class="fas fa-boxes-stacked"></i> Primer Ítem</h4>
+                        <div class="item-editor-row">
+                            <div style="flex:1;">
+                                <label style="font-size:0.7rem;">Nombre / Producto</label>
+                                <input type="text" id="modal_item_nombre" class="form-control" placeholder="Nombre del producto...">
+                            </div>
+                            <div style="flex:0 0 100px;">
+                                <label style="font-size:0.7rem;">Cantidad</label>
+                                <input type="number" id="modal_item_cantidad" value="1" min="1" class="form-control">
+                            </div>
+                            <div style="flex:0 0 120px;">
+                                <label style="font-size:0.7rem;">Tipo</label>
+                                <select id="modal_item_tipo" class="form-control">
+                                    <option value="articulo">Artículo</option>
+                                    <option value="insumo">Insumo</option>
+                                    <option value="herramienta">Herramienta</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="ocModalCancel">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="ocModalSubmit"><i class="fas fa-save"></i> Crear Solicitud</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ MODAL: FINALIZAR / REGISTRAR PAGO ═══ -->
+        <div class="modal" id="finalizarModal">
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-check-circle"></i> Finalizar y Registrar Gasto</h3>
+                    <button type="button" class="modal-close" id="finalizarModalClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Cuenta Bancaria <span class="required-dot">*</span></label>
+                        <select id="modal_cuenta_id" data-linked="cuentas_bancarias">
+                            <option value="">— Seleccione cuenta —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Forma de Pago</label>
+                        <select id="modal_forma_pago">
+                            <option value="contado">Contado</option>
+                            <option value="transferencia">Transferencia</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="credito_30">Crédito 30 días</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto Total ($)</label>
+                        <input type="number" id="modal_total_final" class="form-control" step="any" placeholder="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="finalizarModalCancel">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="finalizarModalSubmit"><i class="fas fa-check"></i> Finalizar y Registrar Gasto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ MODAL: PRODUCTOS LOOKUP ═══ -->
+        <div class="modal" id="productosModal">
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-search"></i> Buscar Producto</h3>
+                    <button type="button" class="modal-close" id="productosModalClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-wrap" style="margin-bottom:0.75rem;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="productosModalSearch" placeholder="Escriba para filtrar...">
+                    </div>
+                    <div id="productosModalList" style="max-height:50vh;overflow-y:auto;"></div>
+                </div>
+            </div>
+        </div>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/orden_compra.js?v=20260707070000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

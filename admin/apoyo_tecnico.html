@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apoyo Técnico - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span> Apoyo Técnico</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+                <div class="module-hero purple">
+            <div class="mh-icon"><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span></div>
+            <h2>Apoyo Técnico</h2>
+            <div class="mh-subtitle">Gestiona solicitudes de apoyo técnico externo, especialistas y servicios de terceros para trabajos especializados.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Controla las solicitudes de apoyo técnico externo cuando el taller requiere expertise especializada. Registra quién solicita, el motivo, el proveedor asignado y el estado.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Proveedores</span><span class="mc-tag">Órdenes de Trabajo</span><span class="mc-tag">Compras</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Soporte</div>
+                <div class="mc-tags"><span class="mc-tag accent">Soporte</span><span class="mc-tag">Externo</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Registrar solicitud de apoyo. Luego identificar especialista o proveedor, seguimiento del estado y finalmente cerrar solicitud al resolver.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Registrar solicitud de apoyo</span><span class="mhe-step"><span class="step-num">2</span> Identificar especialista o proveedor</span><span class="mhe-step"><span class="step-num">3</span> Seguimiento del estado</span><span class="mhe-step"><span class="step-num">4</span> Cerrar solicitud al resolver</span></div>
+            </div>
+        </div>
+        <!-- Mode Tabs -->
+        <div class="module-tabs" style="display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:1rem;">
+            <button class="module-tab active" data-modo="conocimiento" onclick="cambiarModo('conocimiento')" style="padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-weight:600;color:var(--primary);border-bottom:2px solid var(--primary);margin-bottom:-2px;"><i class="fas fa-book"></i> Base de Conocimiento</button>
+            <button class="module-tab" data-modo="soporte" onclick="cambiarModo('soporte')" style="padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-weight:600;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;"><i class="fas fa-headset"></i> Soporte Externo</button>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, marca o modelo...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">AT</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-life-ring"><i class="fas fa-life-ring"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <input type="hidden" name="modo" id="modo" value="conocimiento">
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Nombre <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group"><label>Marca</label><input type="text" id="vehiculo_marca" name="vehiculo_marca"></div>
+                        <div class="form-group"><label>Modelo</label><input type="text" id="vehiculo_modelo" name="vehiculo_modelo"></div>
+                        <div class="form-group full-width"><label>Tipo / Categoría</label><input type="text" id="tipo" name="tipo" placeholder="Ej: Motor, Eléctrico, Transmisión..."></div>
+                        <div class="form-group full-width"><label>Descripción / Contenido</label><textarea id="descripcion" name="descripcion" rows="4"></textarea></div>
+                        <div class="form-group soporte-field" style="display:none"><label>Prioridad</label><select id="prioridad" name="prioridad"><option value="baja">Baja</option><option value="normal" selected>Normal</option><option value="alta">Alta</option></select></div>
+                        <div class="form-group soporte-field" style="display:none"><label>Estado</label><select id="estado" name="estado"><option value="borrador">Borrador</option><option value="pendiente" selected>Pendiente</option><option value="en_proceso">En Proceso</option><option value="resuelto">Resuelto</option><option value="cerrado">Cerrado</option></select></div>
+                        <div class="form-group soporte-field" style="display:none"><label>Responsable / Especialista</label><input type="text" id="responsable" name="responsable" placeholder="Nombre del especialista"></div>
+                        <div class="form-group soporte-field" style="display:none"><label>OT Asociada (ID)</label><input type="number" id="ot_id" name="ot_id" placeholder="# de OT"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/apoyo_tecnico.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

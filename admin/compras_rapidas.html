@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra Rápida - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-bolt"><i class="fas fa-bolt"></i></span> Compra Rápida</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <div class="module-hero orange">
+            <div class="mh-icon"><span class="nav-icon-box icon-bolt"><i class="fas fa-bolt"></i></span></div>
+            <h2>Compra Rápida</h2>
+            <div class="mh-subtitle">Registro rápido de boletas y compras varias: colaciones, bebestibles, insumos de oficina, combustible y otros gastos menores del día a día.</div>
+        </div>
+
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Registra compras rápidas sin necesidad de orden de compra. Ideal para gastos menores del taller como colaciones, bebidas, combustible y material de oficina.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Cuentas Bancarias</span><span class="mc-tag">Empleados</span><span class="mc-tag">Compras</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Finanzas</div>
+                <div class="mc-tags"><span class="mc-tag accent">Gastos</span><span class="mc-tag">Rápido</span></div>
+            </div>
+        </div>
+
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Registra la compra indicando fecha, nombre del gasto, valor y empleado responsable. Opcionalmente adjunta boleta/foto y asigna la cuenta bancaria de descuento.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Ingresa fecha y nombre del gasto</span><span class="mhe-step"><span class="step-num">2</span> Indica valor y tipo de pago</span><span class="mhe-step"><span class="step-num">3</span> Selecciona empleado responsable</span><span class="mhe-step"><span class="step-num">4</span> Adjunta boleta o evidencia</span></div>
+            </div>
+        </div>
+
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, lugar o detalle...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nueva</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">CR</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-bolt"><i class="fas fa-bolt"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Fecha <span class="required-dot">*</span></label><input type="date" id="fecha" name="fecha" required></div>
+                        <div class="form-group"><label>Nombre / Concepto <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" placeholder="Ej: Colación almuerzo" required></div>
+                        <div class="form-group"><label>Lugar de Compra</label><input type="text" id="lugar_compra" name="lugar_compra" placeholder="Ej: Restaurante XYZ"></div>
+                        <div class="form-group"><label>Valor ($) <span class="required-dot">*</span></label><input type="number" id="valor" name="valor" min="0" step="1" placeholder="0" required></div>
+                        <div class="form-group"><label>Tipo de Pago</label><div class="select-wrapper"><select id="tipo_pago" name="tipo_pago" data-category="tipo_pago_compra_rapida"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Empleado Responsable</label><select id="empleado_responsable_id" name="empleado_responsable_id"><option value="">—</option></select></div>
+                        <div class="form-group" style="position:relative;">
+                            <label>Proveedor</label>
+                            <div style="display:flex;gap:0.5rem;align-items:center;">
+                                <div style="flex:1;position:relative;">
+                                    <input type="text" id="proveedor_nombre" placeholder="Buscar proveedor..." autocomplete="off" style="width:100%;">
+                                    <input type="hidden" id="proveedor_id" name="proveedor_id">
+                                    <div class="typeahead-results" id="proveedorTypeahead"></div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline" id="btnNuevoProveedor" title="Nuevo proveedor"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Cuenta Bancaria (descuento)</label><select id="cuenta_bancaria_id" name="cuenta_bancaria_id"><option value="">—</option></select></div>
+                        <div class="form-group full-width"><label>Detalle / Observaciones</label><textarea id="detalle" name="detalle" rows="3" placeholder="Descripción adicional de la compra..."></textarea></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra boletas, fotos o documentos aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/compras_rapidas.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

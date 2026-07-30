@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Control - Figuetronic</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/index.css?v=20260720120000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .pc-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .pc-stat { background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-subtle); position: relative; overflow: hidden; transition: all 0.2s; }
+        .pc-stat:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .pc-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary); }
+        .pc-stat.warn::before { background: var(--warning, #f59e0b); }
+        .pc-stat.ok::before { background: var(--success, #10b981); }
+        .pc-stat.info::before { background: #3b82f6; }
+        .pc-stat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.6rem; }
+        .pc-stat.warn .pc-stat-icon { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .pc-stat.ok .pc-stat-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+        .pc-stat.info .pc-stat-icon { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .pc-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .pc-stat-label { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.3rem; }
+
+        /* Layout principal */
+        .pc-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.25rem; }
+        @media (max-width: 1100px) { .pc-layout { grid-template-columns: 1fr; } }
+        .pc-main { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+        .pc-side { display: flex; flex-direction: column; gap: 1.25rem; }
+
+        /* Tarjetas principales */
+        .pc-card { background: #fff; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .pc-card-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+        .pc-card-head h3 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .pc-card-head h3 i { color: var(--primary); }
+        .pc-card-body { padding: 1.25rem; }
+        .pc-card-body.no-pad { padding: 0; }
+
+        /* OT list cards */
+        .pc-ot-item { display: grid; grid-template-columns: 90px 1fr auto; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-subtle); align-items: center; cursor: pointer; transition: background 0.15s; }
+        .pc-ot-item:hover { background: var(--bg-hover); }
+        .pc-ot-item:last-child { border-bottom: none; }
+        .pc-ot-folio { background: var(--primary-glow); color: var(--primary); padding: 6px 10px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; text-align: center; }
+        .pc-ot-info { min-width: 0; }
+        .pc-ot-cliente { font-weight: 600; color: var(--text-primary); font-size: 0.92rem; margin-bottom: 2px; }
+        .pc-ot-meta { display: flex; gap: 12px; font-size: 0.78rem; color: var(--text-secondary); flex-wrap: wrap; }
+        .pc-ot-meta i { color: var(--primary); margin-right: 3px; }
+        .pc-ot-stats { display: flex; gap: 4px; }
+        .pc-ot-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; border-radius: 8px; background: var(--bg-hover); min-width: 50px; }
+        .pc-ot-stat .num { font-size: 1.05rem; font-weight: 800; color: var(--primary); line-height: 1; }
+        .pc-ot-stat .lbl { font-size: 0.65rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+        .pc-ot-stat.alert .num { color: var(--danger, #ef4444); }
+
+        /* Estado badge */
+        .pc-estado { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .pc-estado::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .pc-estado.abierta, .pc-estado.pendiente { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .pc-estado.en_proceso, .pc-estado.proceso, .pc-estado.en-proceso { background: rgba(75,123,236,0.1); color: #4B7BEC; }
+        .pc-estado.diagnostico { background: rgba(168,85,247,0.1); color: #a855f7; }
+        .pc-estado.finalizado, .pc-estado.entregado, .pc-estado.completado { background: rgba(16,185,129,0.1); color: #10b981; }
+        .pc-estado.cancelado { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Filtros */
+        .pc-filters { display: flex; gap: 8px; padding: 1rem 1.25rem; background: var(--bg-card); border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+        .pc-filters input, .pc-filters select { padding: 7px 10px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; font-family: var(--font); outline: none; }
+        .pc-filters input { flex: 1; min-width: 200px; }
+        .pc-filters input:focus, .pc-filters select:focus { border-color: var(--primary); }
+
+        /* Side: Cliente seleccionado */
+        .pc-cliente-card { background: linear-gradient(135deg, #0f1d32 0%, #1e3a6e 100%); color: #fff; border-radius: 12px; padding: 1.25rem; }
+        .pc-cliente-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
+        .pc-cliente-card .pc-cliente-meta { display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: rgba(255,255,255,0.85); }
+        .pc-cliente-card .pc-cliente-meta i { color: var(--primary); margin-right: 6px; width: 16px; }
+
+        /* Configuración */
+        .pc-seccion { background: #fff; border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
+        .pc-seccion-head { padding: 0.85rem 1.25rem; background: var(--bg-hover); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .pc-seccion-head h4 { font-size: 0.92rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .pc-seccion-head h4 i { color: var(--primary); }
+        .pc-seccion-body { padding: 0.5rem 0; }
+
+        /* Toggle switch */
+        .pc-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; }
+        .pc-toggle-row:last-child { border-bottom: none; }
+        .pc-toggle-row:hover { background: var(--bg-hover); }
+        .pc-toggle-info { flex: 1; min-width: 0; }
+        .pc-toggle-info .label { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+        .pc-toggle-info .desc { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
+        .pc-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+        .pc-switch input { display: none; }
+        .pc-switch-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 22px; cursor: pointer; transition: background 0.2s; }
+        .pc-switch-slider::before { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .pc-switch input:checked + .pc-switch-slider { background: var(--primary); }
+        .pc-switch input:checked + .pc-switch-slider::before { transform: translateX(18px); }
+
+        /* Input field para textos */
+        .pc-input-row { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-subtle); }
+        .pc-input-row label { display: block; font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+        .pc-input-row input[type="text"], .pc-input-row textarea { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border-color); border-radius: 7px; font-size: 0.85rem; font-family: var(--font); outline: none; }
+        .pc-input-row input[type="text"]:focus, .pc-input-row textarea:focus { border-color: var(--primary); }
+        .pc-color-row { display: flex; gap: 8px; align-items: center; }
+        .pc-color-row input[type="color"] { width: 50px; height: 36px; border: 1.5px solid var(--border-color); border-radius: 7px; cursor: pointer; padding: 2px; }
+
+        /* Chat */
+        .pc-chat { display: flex; flex-direction: column; height: 480px; border: 1px solid var(--border-subtle); border-radius: 10px; overflow: hidden; }
+        .pc-chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 10px; background: var(--bg-card); }
+        .pc-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; line-height: 1.5; }
+        .pc-msg.cliente { align-self: flex-start; background: var(--bg-hover); color: var(--text-primary); border-bottom-left-radius: 4px; }
+        .pc-msg.tecnico { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+        .pc-msg .who { font-size: 0.7rem; font-weight: 700; opacity: 0.8; margin-bottom: 2px; }
+        .pc-msg .when { font-size: 0.65rem; opacity: 0.5; margin-top: 4px; text-align: right; }
+        .pc-chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-subtle); background: #fff; }
+        .pc-chat-input input { flex: 1; padding: 9px 14px; border: 1.5px solid var(--border-color); border-radius: 20px; font-size: 0.85rem; font-family: var(--font); outline: none; }
+        .pc-chat-input input:focus { border-color: var(--primary); }
+        .pc-chat-input button { padding: 0 18px; border-radius: 20px; border: none; background: var(--primary); color: #fff; cursor: pointer; font-weight: 600; }
+
+        /* Avance form */
+        .pc-avance-form { background: var(--bg-hover); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+        .pc-avance-form input, .pc-avance-form textarea { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border-color); border-radius: 7px; font-size: 0.85rem; font-family: var(--font); margin-bottom: 8px; outline: none; }
+        .pc-avance-form input:focus, .pc-avance-form textarea:focus { border-color: var(--primary); }
+        .pc-avance-form textarea { min-height: 60px; resize: vertical; }
+        .pc-form-row { display: flex; gap: 8px; }
+        .pc-form-row > * { flex: 1; }
+
+        /* Avance cards */
+        .pc-avance { background: #fff; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 1rem; margin-bottom: 0.6rem; transition: all 0.2s; }
+        .pc-avance:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-color: var(--primary); }
+        .pc-avance-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .pc-avance-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+        .pc-avance-pct { font-size: 0.78rem; font-weight: 800; color: var(--primary); }
+        .pc-avance-desc { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.5; }
+        .pc-avance-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-tertiary); }
+        .pc-progress-bar { height: 6px; background: var(--border-subtle); border-radius: 10px; overflow: hidden; margin: 6px 0; }
+        .pc-progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #34D058); transition: width 0.4s; }
+
+        /* Multimedia */
+        .pc-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+        .pc-media-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid var(--border-subtle); background: var(--bg-hover); display: flex; align-items: center; justify-content: center; }
+        .pc-media-item img, .pc-media-item video { width: 100%; height: 100%; object-fit: cover; }
+        .pc-media-item .pc-media-del { position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.9); color: #fff; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 0.65rem; }
+        .pc-media-item:hover .pc-media-del { display: flex; }
+        .pc-media-item audio { display: none; }
+
+        /* Empty state */
+        .pc-empty { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); }
+        .pc-empty i { font-size: 2.5rem; color: var(--text-tertiary); margin-bottom: 1rem; display: block; }
+        .pc-empty p { font-size: 0.9rem; }
+
+        /* Activity chart */
+        .pc-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; padding: 0.5rem 0; }
+        .pc-bar { flex: 1; background: linear-gradient(180deg, var(--primary), #2563eb); border-radius: 6px 6px 0 0; min-height: 4px; position: relative; transition: all 0.3s; }
+        .pc-bar:hover { opacity: 0.8; }
+        .pc-bar-label { font-size: 0.7rem; color: var(--text-tertiary); text-align: center; margin-top: 4px; }
+        .pc-bar-value { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text-primary); }
+
+        /* Botones */
+        .pc-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: var(--font); }
+        .pc-btn-primary { background: var(--primary); color: #fff; }
+        .pc-btn-primary:hover { background: var(--primary-hover); }
+        .pc-btn-secondary { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .pc-btn-secondary:hover { background: var(--border-color); }
+        .pc-btn-success { background: #10b981; color: #fff; }
+        .pc-btn-danger { background: #ef4444; color: #fff; }
+        .pc-btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+        .pc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pc-btn-warning { background: #f59e0b !important; color: #fff !important; }
+
+        /* Tabs internas */
+        .pc-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-subtle); padding: 0 1.25rem; background: var(--bg-hover); }
+        .pc-tab { padding: 10px 16px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .pc-tab:hover { color: var(--text-primary); }
+        .pc-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .pc-tab-panel { display: none; }
+        .pc-tab-panel.active { display: block; }
+
+        /* OT activa header */
+        .pc-active-ot { background: linear-gradient(135deg, var(--primary), #1e40af); color: #fff; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+        .pc-active-ot .folio { font-size: 1.1rem; font-weight: 800; }
+        .pc-active-ot .info { font-size: 0.82rem; opacity: 0.9; margin-top: 4px; }
+
+        /* Modal */
+        .modal-content { max-width: 600px; }
+
+        /* Save indicator */
+        .pc-save-bar { position: fixed; bottom: 1rem; right: 1rem; background: var(--primary); color: #fff; padding: 10px 18px; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: none; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; z-index: 1000; }
+        .pc-save-bar.show { display: flex; animation: slideUp 0.3s ease; }
+
+        /* Hide main content until auth */
+        body:not(.auth-ok) .main-content { visibility: hidden !important; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-people"><i class="fas fa-globe"></i></span> Portal Control</h1>
+        </div>
+        <div class="header-right">
+            <button class="pc-btn pc-btn-secondary" id="btnRefresh"><i class="fas fa-sync"></i> Actualizar</button>
+            <a href="portal.html" target="_blank" class="pc-btn pc-btn-primary"><i class="fas fa-external-link-alt"></i> Ver Portal</a>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+
+    <!-- Hero de cabecera -->
+    <div class="module-hero blue">
+        <div class="mh-icon"><i class="fas fa-globe"></i></div>
+        <h2>Centro de Control del Portal de Clientes</h2>
+        <div class="mh-subtitle">Gestiona la visibilidad de cada sección, publica avances, responde mensajes y supervisa la comunicación con los clientes.</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="pc-stats-grid" id="statsGrid">
+        <div class="pc-stat"><div class="pc-stat-icon"><i class="fas fa-file-invoice"></i></div><div class="pc-stat-value" id="statOts">—</div><div class="pc-stat-label">OTs activas</div></div>
+        <div class="pc-stat warn"><div class="pc-stat-icon"><i class="fas fa-comments"></i></div><div class="pc-stat-value" id="statPendientes">—</div><div class="pc-stat-label">Mensajes sin responder</div></div>
+        <div class="pc-stat info"><div class="pc-stat-icon"><i class="fas fa-comment-dots"></i></div><div class="pc-stat-value" id="statHoy">—</div><div class="pc-stat-label">Comentarios hoy</div></div>
+        <div class="pc-stat ok"><div class="pc-stat-icon"><i class="fas fa-chart-line"></i></div><div class="pc-stat-value" id="statAvances">—</div><div class="pc-stat-label">Avances esta semana</div></div>
+        <div class="pc-stat"><div class="pc-stat-icon"><i class="fas fa-paperclip"></i></div><div class="pc-stat-value" id="statArchivos">—</div><div class="pc-stat-label">Archivos de clientes</div></div>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="pc-layout">
+        <div class="pc-main">
+
+            <!-- Card de OTs -->
+            <div class="pc-card">
+                <div class="pc-card-head">
+                    <h3><i class="fas fa-list"></i> Órdenes de Trabajo</h3>
+                    <div style="display:flex;gap:6px;">
+                        <button class="pc-btn pc-btn-sm pc-btn-secondary" id="btnBulkAvance"><i class="fas fa-bullhorn"></i> Publicar Avance Masivo</button>
+                    </div>
+                </div>
+                <div class="pc-filters">
+                    <input type="text" id="searchInput" placeholder="Buscar por folio, cliente, RUT o patente...">
+                    <select id="filterEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="abierta">Abierta</option>
+                        <option value="proceso">En Proceso</option>
+                        <option value="diagnostico">Diagnóstico</option>
+                        <option value="finalizado">Finalizado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                    <button class="pc-btn pc-btn-sm pc-btn-primary" id="btnApplyFilter"><i class="fas fa-filter"></i> Filtrar</button>
+                </div>
+                <div id="otListContainer" style="max-height:540px;overflow-y:auto;">
+                    <div class="pc-empty"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+                </div>
+                <div id="otPagination" style="padding:0.75rem 1.25rem;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;"></div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="pc-card">
+                <div class="pc-card-head">
+                    <h3><i class="fas fa-sliders-h"></i> Configuración de Visibilidad del Portal</h3>
+                    <button class="pc-btn pc-btn-sm pc-btn-success" id="btnSaveConfig"><i class="fas fa-save"></i> Guardar Cambios</button>
+                </div>
+                <div id="configContainer" class="pc-card-body" style="padding:0;">
+                    <div class="pc-empty"><i class="fas fa-spinner fa-spin"></i><p>Cargando configuración...</p></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="pc-side">
+
+            <!-- OT seleccionada -->
+            <div id="otDetalleContainer">
+                <div class="pc-card">
+                    <div class="pc-card-body">
+                        <div class="pc-empty" style="padding:2rem 1rem;">
+                            <i class="fas fa-hand-pointer"></i>
+                            <p>Seleccione una OT para gestionar</p>
+                            <p style="font-size:0.78rem;color:var(--text-tertiary);margin-top:4px;">Aquí podrá responder al cliente, publicar avances y ver el historial</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actividad reciente -->
+            <div class="pc-card">
+                <div class="pc-card-head"><h3><i class="fas fa-chart-bar"></i> Actividad (7 días)</h3></div>
+                <div class="pc-card-body">
+                    <div class="pc-bar-chart" id="activityChart"></div>
+                </div>
+            </div>
+
+            <!-- OTs más activas -->
+            <div class="pc-card">
+                <div class="pc-card-head"><h3><i class="fas fa-fire"></i> OTs más activas</h3></div>
+                <div class="pc-card-body no-pad" id="topOtsList" style="max-height:280px;overflow-y:auto;">
+                    <div class="pc-empty"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav" id="bottomNav">
+    <div class="bottom-nav-inner">
+        <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+        <a href="clientes.html" class="bottom-nav-item"><span class="nav-icon-box icon-people"><i class="fas fa-user-group"></i></span><span>Clientes</span></a>
+        <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+        <a href="ejecucion_ot.html" class="bottom-nav-item"><span class="nav-icon-box icon-helmet"><i class="fas fa-helmet-safety"></i></span><span>Ejecución</span></a>
+        <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+    </div>
+</nav>
+
+<!-- Modal: Publicar Avance -->
+<div class="modal" id="avanceModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-bullhorn"></i> Publicar Avance</h3>
+            <button class="modal-close" onclick="closeModal('avanceModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Título del avance *</label>
+                <input type="text" id="av-titulo" placeholder="Ej: Inicio del trabajo eléctrico">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="av-descripcion" rows="3" placeholder="Detalles del avance..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Porcentaje completado: <span id="av-pct-label">0%</span></label>
+                <input type="range" id="av-porcentaje" min="0" max="100" value="0" style="width:100%;">
+            </div>
+            <div class="form-group">
+                <label>Archivos adjuntos (opcional)</label>
+                <input type="file" id="av-archivos" multiple accept="image/*,video/*,audio/*">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="pc-btn pc-btn-secondary" onclick="closeModal('avanceModal')">Cancelar</button>
+            <button class="pc-btn pc-btn-primary" id="btn-confirmar-avance"><i class="fas fa-paper-plane"></i> Publicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Avance Masivo -->
+<div class="modal" id="masivoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-bullhorn"></i> Publicar Avance en Múltiples OTs</h3>
+            <button class="modal-close" onclick="closeModal('masivoModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Esto publicará el mismo avance en todas las OTs seleccionadas. Úselo para anuncios generales.</p>
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" id="mas-titulo" placeholder="Ej: Cierre por feriado">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="mas-descripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Porcentaje</label>
+                <input type="number" id="mas-porcentaje" min="0" max="100" value="0">
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-tertiary);">El avance se publicará en <strong>todas las OTs visibles en el listado actual</strong>.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="pc-btn pc-btn-secondary" onclick="closeModal('masivoModal')">Cancelar</button>
+            <button class="pc-btn pc-btn-primary" id="btn-confirmar-masivo"><i class="fas fa-paper-plane"></i> Publicar en Todas</button>
+        </div>
+    </div>
+</div>
+
+<!-- Save indicator -->
+<div class="pc-save-bar" id="saveBar"><i class="fas fa-check-circle"></i> <span id="saveBarText">Guardado</span></div>
+
+<script src="js/common.js?v=20260720120000"></script>
+<script src="js/portal_control.js?v=20260720120000"></script>
+</body>
+</html>

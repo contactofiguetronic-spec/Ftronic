@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Control - Datos y Reportes - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260707060000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .report-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:1.2rem;overflow-x:auto;flex-wrap:nowrap}
+        .report-tab{padding:0.6rem 1.2rem;font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+        .report-tab:hover{color:var(--text-primary)}
+        .report-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        .report-tab i{font-size:0.85rem}
+
+        .filter-bar{display:flex;align-items:center;gap:0.75rem;padding:0.9rem 1.2rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;flex-wrap:wrap;margin-bottom:1.2rem}
+        .filter-bar .filter-group{display:flex;align-items:center;gap:0.4rem}
+        .filter-bar label{font-size:0.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+        .filter-bar input[type="date"],.filter-bar input[type="text"]{background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:0.45rem 0.7rem;color:var(--text-primary);font-size:0.8rem;font-family:var(--font);transition:border-color .2s}
+        .filter-bar input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(75,123,236,.12)}
+        .filter-bar input[type="text"]{width:200px}
+        .filter-bar .filter-separator{width:1px;height:28px;background:var(--border-color);margin:0 0.3rem}
+
+        .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.2rem}
+        .kpi-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:1.2rem;display:flex;flex-direction:column;gap:0.6rem;transition:all .25s;position:relative;overflow:hidden}
+        .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),transparent);opacity:0;transition:opacity .3s}
+        .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.06);border-color:rgba(75,123,236,.2)}
+        .kpi-card:hover::before{opacity:1}
+        .kpi-card .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+        .kpi-card .kpi-value{font-size:1.6rem;font-weight:800;color:var(--text-primary);line-height:1}
+        .kpi-card .kpi-label{font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+        .kpi-card .kpi-trend{font-size:0.7rem;font-weight:600;display:flex;align-items:center;gap:0.3rem}
+        .kpi-card .kpi-trend.up{color:#10b981}
+        .kpi-card .kpi-trend.down{color:#ef4444}
+
+        .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+        .chart-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:1.2rem}
+        .chart-card .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+        .chart-card .chart-title{font-size:0.85rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem}
+        .chart-card .chart-title i{color:var(--primary);font-size:0.8rem}
+        .chart-card canvas{width:100%!important;max-height:280px}
+
+        .data-table-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;overflow:hidden;margin-bottom:1.2rem}
+        .data-table-card .table-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid var(--border-color)}
+        .data-table-card .table-title{font-size:0.9rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem}
+        .data-table-card .table-title i{color:var(--primary)}
+        .data-table{width:100%;border-collapse:collapse;font-size:0.8rem}
+        .data-table thead th{padding:0.75rem 1rem;text-align:left;font-weight:700;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);background:var(--bg-secondary);border-bottom:1px solid var(--border-color);white-space:nowrap;position:sticky;top:0;z-index:1}
+        .data-table tbody tr{transition:background .15s}
+        .data-table tbody tr:hover{background:rgba(75,123,236,.04)}
+        .data-table tbody td{padding:0.65rem 1rem;border-bottom:1px solid var(--border-color);color:var(--text-primary);white-space:nowrap}
+        .data-table .status-badge{padding:0.2rem 0.6rem;border-radius:12px;font-size:0.65rem;font-weight:700;text-transform:uppercase}
+        .data-table .status-badge.green{background:rgba(16,185,129,.12);color:#059669}
+        .data-table .status-badge.blue{background:rgba(75,123,236,.12);color:#4B7BEC}
+        .data-table .status-badge.red{background:rgba(239,68,68,.12);color:#dc2626}
+        .data-table .status-badge.yellow{background:rgba(245,158,11,.12);color:#d97706}
+
+        .table-footer{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.2rem;border-top:1px solid var(--border-color);font-size:0.72rem;color:var(--text-secondary)}
+        .table-footer .pagination{display:flex;gap:0.3rem}
+        .table-footer .pagination button{padding:0.3rem 0.6rem;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);border-radius:4px;cursor:pointer;font-size:0.7rem;transition:all .2s}
+        .table-footer .pagination button:hover,.table-footer .pagination button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+        .wizard-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:var(--z-modal);align-items:center;justify-content:center;padding:1.5rem}
+        .wizard-overlay.open{display:flex}
+        .wizard-content{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;width:100%;max-width:680px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.2)}
+        .wizard-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border-color)}
+        .wizard-header h3{font-size:1rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem}
+        .wizard-header h3 i{color:var(--primary)}
+        .wizard-close{background:none;border:none;color:var(--text-secondary);font-size:1.1rem;cursor:pointer;padding:4px;border-radius:6px}
+        .wizard-close:hover{color:var(--danger);background:rgba(239,68,68,.1)}
+        .wizard-steps{display:flex;padding:1rem 1.5rem;gap:0;border-bottom:1px solid var(--border-color)}
+        .wizard-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.4rem;position:relative}
+        .wizard-step::after{content:'';position:absolute;top:14px;left:55%;right:-45%;height:2px;background:var(--border-color)}
+        .wizard-step:last-child::after{display:none}
+        .wizard-step .step-number{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:var(--bg-secondary);color:var(--text-secondary);border:2px solid var(--border-color);position:relative;z-index:1;transition:all .3s}
+        .wizard-step.active .step-number{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 0 12px rgba(75,123,236,.4)}
+        .wizard-step.completed .step-number{background:#10b981;color:#fff;border-color:#10b981}
+        .wizard-step .step-label{font-size:0.65rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.3px}
+        .wizard-step.active .step-label{color:var(--primary)}
+        .wizard-step.completed .step-label{color:#10b981}
+        .wizard-body{flex:1;overflow-y:auto;padding:1.5rem}
+        .wizard-step-content{display:none}
+        .wizard-step-content.active{display:block}
+        .wizard-step-content h4{font-size:0.9rem;color:var(--text-primary);margin-bottom:0.8rem;display:flex;align-items:center;gap:0.5rem}
+        .wizard-step-content h4 i{color:var(--primary)}
+        .wizard-checklist{display:flex;flex-direction:column;gap:0.5rem}
+        .wizard-checklist .check-item{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.9rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;cursor:pointer;transition:all .2s}
+        .wizard-checklist .check-item:hover{border-color:rgba(75,123,236,.2)}
+        .wizard-checklist .check-item.selected{background:rgba(75,123,236,.06);border-color:var(--primary)}
+        .wizard-checklist .check-item input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+        .wizard-checklist .check-item .check-label{font-size:0.82rem;color:var(--text-primary);font-weight:500}
+        .wizard-checklist .check-item .check-desc{font-size:0.68rem;color:var(--text-secondary);margin-left:auto}
+        .wizard-filters{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .wizard-filters .form-group{display:flex;flex-direction:column;gap:0.3rem}
+        .wizard-filters .form-group label{font-size:0.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px}
+        .wizard-filters .form-group input,.wizard-filters .form-group select{background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem 0.7rem;color:var(--text-primary);font-size:0.8rem;font-family:var(--font)}
+        .wizard-preview{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.8rem;color:var(--text-secondary)}
+        .wizard-preview i{font-size:2rem;opacity:0.3}
+        .wizard-preview p{font-size:0.8rem}
+        .wizard-footer{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-top:1px solid var(--border-color)}
+        .wizard-footer .btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:var(--font)}
+        .wizard-footer .btn-wizard-cancel{background:transparent;border:1px solid var(--border-color);color:var(--text-secondary)}
+        .wizard-footer .btn-wizard-cancel:hover{color:var(--danger);border-color:var(--danger)}
+        .wizard-footer .btn-wizard-prev{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color)}
+        .wizard-footer .btn-wizard-next{background:var(--primary);color:#fff}
+        .wizard-footer .btn-wizard-next:hover{background:#3d6fd9}
+        .wizard-footer .btn-wizard-generate{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+        .wizard-footer .btn-wizard-generate:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,185,129,.3)}
+        .wizard-footer .wizard-footer-right{display:flex;gap:0.5rem}
+
+        .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:9999;justify-content:center;align-items:center}
+        .loading-overlay.show{display:flex}
+        .loading-box{background:var(--bg-card);padding:2rem;border-radius:12px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+        .loading-box i{font-size:2rem;color:var(--primary)}
+        .loading-box p{margin-top:0.5rem;color:var(--text-primary);font-size:0.85rem}
+
+        @media(max-width:1024px){.charts-grid{grid-template-columns:1fr}.filter-bar{flex-direction:column;align-items:stretch}.filter-bar input[type="text"]{width:100%}}
+        @media(max-width:640px){.kpi-grid{grid-template-columns:1fr 1fr}.wizard-filters{grid-template-columns:1fr}.report-tabs{overflow-x:auto}}
+        @media print{.sidebar,.report-tabs,.filter-bar,.wizard-overlay,.header,.menu-toggle,.btn-help,.data-toolbar{display:none!important}.kpi-card,.chart-card,.data-table-card{background:#fff!important;border:1px solid #ccc!important;box-shadow:none!important}}
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-chart"><i class="fas fa-chart-column"></i></span> Centro de Control</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- Report Tabs -->
+        <div class="report-tabs" id="reportTabs">
+            <div class="report-tab active" data-category="resumen"><i class="fas fa-chart-pie"></i> Resumen</div>
+            <div class="report-tab" data-category="finanzas"><i class="fas fa-dollar-sign"></i> Finanzas</div>
+            <div class="report-tab" data-category="operaciones"><i class="fas fa-screwdriver-wrench"></i> Operaciones</div>
+            <div class="report-tab" data-category="inventario"><i class="fas fa-boxes-stacked"></i> Inventario</div>
+            <div class="report-tab" data-category="inventario_taller"><i class="fas fa-suitcase"></i> Inv. Taller</div>
+            <div class="report-tab" data-category="tareas"><i class="fas fa-list-check"></i> Tareas</div>
+            <div class="report-tab" data-category="clientes"><i class="fas fa-user-group"></i> Clientes</div>
+            <div class="report-tab" data-category="empleados"><i class="fas fa-user-gear"></i> Empleados</div>
+            <div class="report-tab" data-category="mensual"><i class="fas fa-file-alt"></i> Mensual</div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Desde</label>
+                <input type="date" id="dateFrom">
+            </div>
+            <div class="filter-group">
+                <label>Hasta</label>
+                <input type="date" id="dateTo">
+            </div>
+            <div class="filter-separator"></div>
+            <button class="btn btn-primary btn-sm" id="btnApplyFilter"><i class="fas fa-filter"></i> Aplicar</button>
+            <div style="flex:1"></div>
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff" id="btnGenerateReport"><i class="fas fa-file-export"></i> Generar Reporte</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-overlay" id="loadingSpinner">
+            <div class="loading-box">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando datos...</p>
+            </div>
+        </div>
+
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <!-- Charts Area -->
+        <div class="charts-grid" id="chartsArea"></div>
+
+        <!-- Data Table Area -->
+        <div class="data-table-card" id="dataTableArea">
+            <div class="table-header">
+                <div class="table-title"><i class="fas fa-table"></i> <span id="tableTitle">Detalle de Movimientos</span></div>
+            </div>
+            <div id="tableContainer"></div>
+        </div>
+    </main>
+
+    <!-- Report Wizard Modal -->
+    <div class="wizard-overlay" id="reportWizard">
+        <div class="wizard-content">
+            <div class="wizard-header">
+                <h3><i class="fas fa-magic"></i> Asistente de Reportes</h3>
+                <button class="wizard-close" id="wizardClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="wizard-steps">
+                <div class="wizard-step active" data-step="1"><div class="step-number">1</div><div class="step-label">Secciones</div></div>
+                <div class="wizard-step" data-step="2"><div class="step-number">2</div><div class="step-label">Filtros</div></div>
+                <div class="wizard-step" data-step="3"><div class="step-number">3</div><div class="step-label">Vista Previa</div></div>
+            </div>
+            <div class="wizard-body">
+                <div class="wizard-step-content active" id="wizardStep1"></div>
+                <div class="wizard-step-content" id="wizardStep2">
+                    <h4><i class="fas fa-sliders-h"></i> Configura los filtros</h4>
+                    <div class="wizard-filters">
+                        <div class="form-group"><label>Fecha Desde</label><input type="date" id="wizardDateFrom"></div>
+                        <div class="form-group"><label>Fecha Hasta</label><input type="date" id="wizardDateTo"></div>
+                        <div class="form-group"><label>Formato</label><select id="wizardFormat"><option value="pdf">PDF</option><option value="print">Imprimir</option></select></div>
+                    </div>
+                </div>
+                <div class="wizard-step-content" id="wizardStep3">
+                    <h4><i class="fas fa-eye"></i> Vista Previa</h4>
+                    <div class="wizard-preview" id="wizardPreview"><i class="fas fa-file-pdf"></i><p>Vista previa del reporte</p></div>
+                </div>
+            </div>
+            <div class="wizard-footer">
+                <button class="btn btn-wizard-cancel" id="wizardCancel"><i class="fas fa-times"></i> Cancelar</button>
+                <div class="wizard-footer-right">
+                    <button class="btn btn-wizard-prev" id="wizardPrev" style="display:none"><i class="fas fa-arrow-left"></i> Anterior</button>
+                    <button class="btn btn-wizard-next" id="wizardNext"><i class="fas fa-arrow-right"></i> Siguiente</button>
+                    <button class="btn btn-wizard-generate" id="wizardGenerate" style="display:none"><i class="fas fa-file-export"></i> Generar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/datos_reportes.js?v=20260709140000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

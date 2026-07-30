@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabajos y Servicios - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span> Trabajos y Servicios</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+                <div class="module-hero pink">
+            <div class="mh-icon"><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span></div>
+            <h2>Servicios y Trabajos</h2>
+            <div class="mh-subtitle">Catálogo de servicios que ofrece el taller con precios, tiempos estimados y descripción detallada de cada trabajo.</div>
+        </div>
+        <div class="module-meta">
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                <div class="mc-value">Define el catálogo de servicios del taller: diagnóstico, reparación, mantenimiento, etc. Cada servicio tiene un precio base y tiempo estimado que se usa al crear presupuestos.</div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                <div class="mc-value">Módulos relacionados:</div>
+                <div class="mc-tags"><span class="mc-tag">Presupuestos</span><span class="mc-tag">Órdenes de Trabajo</span></div>
+            </div>
+            <div class="meta-card">
+                <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                <div class="mc-value">Catálogo</div>
+                <div class="mc-tags"><span class="mc-tag accent">Catálogo</span><span class="mc-tag">Precios</span><span class="mc-tag accent">Servicios</span></div>
+            </div>
+        </div>
+        <div class="module-help-enhanced">
+            <i class="fas fa-lightbulb mhe-icon"></i>
+            <div>
+                <strong>¿Cómo usar este módulo?</strong> Crear categoría de servicio. Luego definir nombre y descripción, establecer precio y tiempo estimado y finalmente usar al crear presupuestos.
+                <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Crear categoría de servicio</span><span class="mhe-step"><span class="step-num">2</span> Definir nombre y descripción</span><span class="mhe-step"><span class="step-num">3</span> Establecer precio y tiempo estimado</span><span class="mhe-step"><span class="step-num">4</span> Usar al crear presupuestos</span></div>
+            </div>
+        </div>
+        <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre o descripción...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">SV</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-paperclip"></i> Adjuntos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Nombre <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group full-width"><label>Descripción</label><textarea id="descripcion" name="descripcion" rows="2"></textarea></div>
+                        <div class="form-group"><label>Tipo</label><div class="select-wrapper"><select id="tipo" name="tipo" data-category="tipo_servicio"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Valor Trabajo ($)</label><input type="number" step="any" id="valor_trabajo" name="valor_trabajo"></div>
+                        <div class="form-group"><label>Tiempo Est. (hrs)</label><input type="number" step="0.5" id="tiempo_estimado" name="tiempo_estimado"></div>
+                    </div>
+                    <div style="margin-top:1rem;border-top:2px solid var(--border-color);padding-top:1rem;">
+                        <h4 style="margin:0 0 0.5rem;font-size:0.9rem;color:var(--text-primary);"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Checklist Plantilla</h4>
+                        <small style="font-size:0.72rem;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Define los pasos secuenciales que se ejecutan al realizar este servicio.</small>
+                        <div class="form-group"><label>Nombre del Checklist</label><input type="text" id="checklistNombre" placeholder="Ej: Procedimiento estándar..."></div>
+                        <div class="form-group"><label>Descripción</label><textarea id="checklistDescripcion" rows="2" placeholder="Instrucciones generales..."></textarea></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                            <label style="font-weight:600;font-size:0.85rem;">Pasos</label>
+                            <button type="button" class="btn btn-xs btn-outline" onclick="addPlantillaPaso()"><i class="fas fa-plus"></i> Agregar Paso</button>
+                        </div>
+                        <div id="checklistPasosContainer"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="multimedia-area">
+                    <div id="existingMediaContainer" style="display:none;">
+                        <p class="media-label">Archivos almacenados:</p>
+                        <div class="existing-media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra archivos aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/checklist.js?v=20260706050000"></script>
+    <script src="js/trabajos_servicios.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

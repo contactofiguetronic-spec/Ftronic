@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figuetronic ERP — Panel Principal</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/index.css?v=20260710020000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ═══ DASHBOARD REDESIGN ═══════════════════════════════════════════════ */
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeInLeft { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+        @keyframes drawLine { from { width:0; } to { width:100%; } }
+        @keyframes scaleIn { from { opacity:0; transform:scale(.92); } to { opacity:1; transform:scale(1); } }
+        @keyframes slideDown { from { opacity:0; max-height:0; } to { opacity:1; max-height:500px; } }
+        .animate-fade-in-up { animation: fadeInUp .5s ease both; }
+        .animate-fade-in-left { animation: fadeInLeft .5s ease both; }
+        .animate-scale-in { animation: scaleIn .4s ease both; }
+
+        /* ─── WELCOME BANNER ─── */
+        .welcome-banner {
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #134e6f 70%, #0d9488 100%);
+            border-radius: 18px; padding: 1.8rem 2.2rem; color: #fff;
+            margin-bottom: 1.25rem;
+            transition: transform .25s, box-shadow .25s;
+        }
+        .welcome-banner:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(13,148,136,.25); }
+        .welcome-banner::before {
+            content:''; position:absolute; top:-60%; right:-15%; width:400px; height:400px;
+            background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%); border-radius:50%;
+        }
+        .welcome-banner::after {
+            content:''; position:absolute; bottom:-40%; left:10%; width:250px; height:250px;
+            background: radial-gradient(circle, rgba(255,255,255,.04) 0%, transparent 70%); border-radius:50%;
+        }
+        .wb-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
+        .wb-greeting h2 { font-size:1.5rem; font-weight:700; margin-bottom:.25rem; }
+        .wb-greeting p { font-size:.85rem; opacity:.75; }
+        .wb-pulse { width:10px; height:10px; background:#34d399; border-radius:50%; display:inline-block; margin-right:.4rem; animation: pulse 2s infinite; }
+        .wb-metrics { display:flex; gap:1.5rem; margin-top:1.2rem; position:relative; z-index:1; flex-wrap:wrap; }
+        .wb-metric {
+            display:flex; align-items:center; gap:.6rem; background:rgba(255,255,255,.1);
+            border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:.6rem 1rem;
+            backdrop-filter:blur(6px); transition:background .2s;
+        }
+        .wb-metric:hover { background:rgba(255,255,255,.18); }
+        .wb-metric-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+        .wb-metric-val { font-size:1.2rem; font-weight:700; line-height:1.2; }
+        .wb-metric-lbl { font-size:.7rem; opacity:.7; }
+
+        /* ─── WORKFLOW RIBBON ─── */
+        .workflow-ribbon {
+            background: var(--bg-card); border:1px solid var(--border-color); border-radius:14px;
+            padding:1rem 1.4rem; margin-bottom:1.25rem; position:relative; overflow:hidden;
+        }
+        .wr-title { font-size:.78rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:.8rem; }
+        .wr-steps { display:flex; align-items:center; gap:0; position:relative; }
+        .wr-step {
+            display:flex; flex-direction:column; align-items:center; gap:.3rem;
+            text-decoration:none; color:var(--text-primary); padding:.4rem .8rem;
+            border-radius:10px; transition:all .2s; position:relative; z-index:1; flex:1;
+        }
+        .wr-step:hover { background:rgba(75,123,236,.06); }
+        .wr-step-icon {
+            width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            font-size:.95rem; transition:transform .2s;
+        }
+        .wr-step:hover .wr-step-icon { transform:scale(1.1); }
+        .wr-step-name { font-size:.72rem; font-weight:600; text-align:center; white-space:nowrap; }
+        .wr-arrow { color:var(--text-muted); font-size:.6rem; flex-shrink:0; margin:0 -4px; z-index:2; }
+        .wr-line {
+            position:absolute; top:20px; left:40px; right:40px; height:2px;
+            background: linear-gradient(90deg, rgba(75,123,236,.15), rgba(16,185,129,.3), rgba(245,158,11,.2));
+            z-index:0;
+        }
+
+        /* ─── KPI GRID ─── */
+        .kpi-section-title {
+            font-size:.78rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase;
+            letter-spacing:.5px; margin-bottom:.8rem; display:flex; align-items:center; gap:.5rem;
+        }
+        .kpi-section-title i { font-size:.7rem; }
+        .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:1.5rem; }
+        .kpi-card {
+            background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px;
+            padding:1rem 1.1rem; text-decoration:none; color:inherit; display:block;
+            transition:all .2s; position:relative; overflow:hidden;
+        }
+        .kpi-card:hover { border-color:var(--primary); transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.06); }
+        .kpi-card::after {
+            content:''; position:absolute; top:0; right:0; width:60px; height:60px;
+            border-radius:0 0 0 60px; opacity:.06; transition:opacity .2s;
+        }
+        .kpi-card:hover::after { opacity:.1; }
+        .kpi-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:.6rem; }
+        .kpi-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:.9rem; }
+        .kpi-trend {
+            font-size:.7rem; font-weight:600; padding:.15rem .45rem; border-radius:6px;
+            display:flex; align-items:center; gap:.2rem;
+        }
+        .kpi-trend.up { color:#059669; background:rgba(16,185,129,.1); }
+        .kpi-trend.down { color:#dc2626; background:rgba(239,68,68,.1); }
+        .kpi-trend.neutral { color:var(--text-secondary); background:rgba(0,0,0,.04); }
+        .kpi-value { font-size:1.35rem; font-weight:800; color:var(--text-primary); line-height:1.2; margin-bottom:.15rem; font-variant-numeric:tabular-nums; }
+        .kpi-value.sm { font-size:1.05rem; }
+        .kpi-label { font-size:.72rem; color:var(--text-secondary); font-weight:500; }
+        .kpi-breakdown { display:flex; flex-direction:column; gap:.2rem; margin-top:.5rem; padding-top:.5rem; border-top:1px solid var(--border-color); }
+        .kpi-breakdown span { font-size:.68rem; color:var(--text-secondary); display:flex; align-items:center; gap:.3rem; }
+        .kpi-breakdown i { font-size:.6rem; width:14px; text-align:center; }
+
+        /* ─── TODAY WORK ─── */
+        .today-section { margin-bottom:1.5rem; }
+        .today-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:1rem; }
+        .today-panel {
+            background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px;
+            overflow:hidden;
+        }
+        .tp-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:.8rem 1rem; border-bottom:1px solid var(--border-color);
+        }
+        .tp-header h3 { font-size:.85rem; font-weight:700; margin:0; display:flex; align-items:center; gap:.4rem; }
+        .tp-header .tp-count {
+            font-size:.65rem; font-weight:700; padding:.15rem .5rem; border-radius:6px;
+            background:rgba(75,123,236,.1); color:var(--primary);
+        }
+        .tp-body { padding:.5rem; max-height:300px; overflow-y:auto; }
+        .tp-empty { text-align:center; padding:2rem 1rem; color:var(--text-secondary); font-size:.8rem; }
+        .tp-item {
+            display:flex; align-items:center; gap:.6rem; padding:.55rem .6rem;
+            border-radius:8px; transition:background .15s; cursor:pointer;
+        }
+        .tp-item:hover { background:var(--hover-bg); }
+        .tp-item-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .tp-item-info { flex:1; min-width:0; }
+        .tp-item-name { font-size:.78rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .tp-item-sub { font-size:.68rem; color:var(--text-secondary); }
+        .tp-item-btn {
+            font-size:.65rem; padding:.2rem .5rem; border-radius:6px; border:none;
+            cursor:pointer; font-weight:600; white-space:nowrap; transition:all .15s;
+        }
+        .tp-item-btn.primary { background:var(--primary); color:#fff; }
+        .tp-item-btn.primary:hover { background:#3b6bda; }
+        .tp-item-btn.accent { background:var(--accent); color:#fff; }
+        .tp-item-btn.accent:hover { background:#0d9488; }
+        .tp-item-btn.warning { background:var(--warning); color:#fff; }
+        .tp-item-btn.warning:hover { background:#e08600; }
+        .tp-item-btn.danger { background:var(--danger); color:#fff; }
+        .tp-item-btn.danger:hover { background:#dc2626; }
+        .tp-item-btn.outline { background:transparent; border:1px solid var(--border-color); color:var(--text-secondary); }
+        .tp-item-btn.outline:hover { border-color:var(--primary); color:var(--primary); }
+
+        /* ─── CHARTS ─── */
+        .charts-row { display:grid; grid-template-columns:1.8fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+        .chart-card {
+            background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px;
+            padding:1.1rem 1.3rem;
+        }
+        .chart-card h3 { font-size:.85rem; font-weight:700; margin:0 0 .8rem; display:flex; align-items:center; gap:.4rem; }
+
+        /* ─── BANK ACCOUNTS ─── */
+        .bank-section { margin-bottom:1.5rem; }
+        .bank-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.8rem; }
+        .bank-card {
+            background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px;
+            padding:1rem; text-decoration:none; color:inherit; display:block; transition:all .2s;
+        }
+        .bank-card:hover { border-color:var(--primary); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.05); }
+        .bank-card-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.85rem; margin-bottom:.5rem; }
+        .bank-card-name { font-size:.82rem; font-weight:600; color:var(--text-primary); margin-bottom:.1rem; }
+        .bank-card-bank { font-size:.68rem; color:var(--text-secondary); margin-bottom:.4rem; }
+        .bank-card-saldo { font-size:1.1rem; font-weight:700; }
+        .bank-card-saldo.positive { color:var(--accent); }
+        .bank-card-saldo.negative { color:var(--danger); }
+
+        /* ─── MODULE ACCESS GRID ─── */
+        .module-access-section { margin-bottom:1.5rem; }
+        .module-access-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:.5rem; }
+        .module-access-item {
+            display:flex; flex-direction:column; align-items:center; gap:.3rem;
+            padding:.7rem .3rem; border-radius:10px; border:1px solid var(--border-color);
+            text-decoration:none; color:var(--text-primary); transition:all .2s;
+            background:var(--bg-card);
+        }
+        .module-access-item:hover { border-color:var(--primary); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.05); }
+        .mai-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.85rem; }
+        .mai-name { font-size:.68rem; font-weight:600; text-align:center; line-height:1.2; }
+
+        /* ─── RESPONSIVE ─── */
+        @media(max-width:1100px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } .today-grid { grid-template-columns:1fr 1fr; } }
+        @media(max-width:768px) {
+            .welcome-banner { padding:1.2rem; }
+            .wb-metrics { flex-direction:column; gap:.6rem; }
+            .wb-metric { width:100%; }
+            .wr-steps { flex-wrap:wrap; gap:.3rem; }
+            .wr-arrow { display:none; }
+            .wr-line { display:none; }
+            .kpi-grid { grid-template-columns:1fr; }
+            .today-grid { grid-template-columns:1fr; }
+            .charts-row { grid-template-columns:1fr; }
+            .bank-cards { grid-template-columns:1fr 1fr; }
+            .module-access-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
+        }
+        @media(max-width:480px) {
+            .bank-cards { grid-template-columns:1fr; }
+            .module-access-grid { grid-template-columns:repeat(4,1fr); }
+        }
+
+        /* ─── SCROLLBAR ─── */
+        .tp-body::-webkit-scrollbar { width:4px; }
+        .tp-body::-webkit-scrollbar-track { background:transparent; }
+        .tp-body::-webkit-scrollbar-thumb { background:var(--border-color); border-radius:4px; }
+
+        /* ─── STAGGER DELAYS ─── */
+        .stagger-1 { animation-delay:.05s; } .stagger-2 { animation-delay:.1s; }
+        .stagger-3 { animation-delay:.15s; } .stagger-4 { animation-delay:.2s; }
+        .stagger-5 { animation-delay:.25s; } .stagger-6 { animation-delay:.3s; }
+        .stagger-7 { animation-delay:.35s; } .stagger-8 { animation-delay:.4s; }
+        .stagger-9 { animation-delay:.45s; } .stagger-10 { animation-delay:.5s; }
+        .stagger-11 { animation-delay:.55s; } .stagger-12 { animation-delay:.6s; }
+        .stagger-13 { animation-delay:.65s; } .stagger-14 { animation-delay:.7s; }
+        .stagger-15 { animation-delay:.75s; } .stagger-16 { animation-delay:.8s; }
+        .stagger-17 { animation-delay:.85s; }
+
+        /* ─── CLOCK WIDGET ─── */
+        .clock-widget{display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(16,185,129,.08));border:1px solid rgba(37,99,235,.15);border-radius:14px;padding:1rem 1.4rem;min-width:260px}
+        .clock-dial{position:relative;width:64px;height:64px;border-radius:50%;border:3px solid var(--primary);background:rgba(10,15,26,.6);flex-shrink:0}
+        .clock-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:2px}
+        .clock-hand.hour{width:3px;height:18px;background:#fff;margin-left:-1.5px}
+        .clock-hand.minute{width:2px;height:24px;background:var(--accent);margin-left:-1px}
+        .clock-hand.second{width:1px;height:26px;background:var(--danger);margin-left:-.5px}
+        .clock-center{position:absolute;top:50%;left:50%;width:6px;height:6px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);z-index:5}
+        .clock-info{display:flex;flex-direction:column;gap:2px}
+        .clock-info .time-text{font-size:1.6rem;font-weight:700;color:#fff;letter-spacing:1px}
+        .clock-info .date-text{font-size:.82rem;color:var(--text-secondary)}
+        .clock-info .greeting-text{font-size:.75rem;color:var(--accent);font-weight:600;margin-top:2px}
+        @media(max-width:768px){.clock-widget{min-width:auto;width:100%}}
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                    <h1 class="page-title">Panel Principal</h1>
+                </div>
+                <div class="header-right" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                    <div class="clock-widget" id="clockWidget">
+                        <div class="clock-dial" id="clockDial">
+                            <div class="clock-hand hour" id="hourHand"></div>
+                            <div class="clock-hand minute" id="minuteHand"></div>
+                            <div class="clock-hand second" id="secondHand"></div>
+                            <div class="clock-center"></div>
+                        </div>
+                        <div class="clock-info">
+                            <div class="time-text" id="clockTime">--:--:--</div>
+                            <div class="date-text" id="clockDate">--</div>
+                            <div class="greeting-text" id="clockGreeting">--</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline" id="btnCommandPalette" title="Buscar módulos (⌘K)"><i class="fas fa-search"></i></button>
+                    <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+                </div>
+            </header>
+            <div class="breadcrumbs"></div>
+
+            <!-- ═══ 1. WELCOME BANNER ═══ -->
+            <div class="welcome-banner animate-fade-in-up" id="welcomeBanner">
+                <div class="wb-top">
+                    <div class="wb-greeting">
+                        <h2><span class="wb-pulse"></span> <span id="wbGreeting">Buenos días</span></h2>
+                        <p id="wbDate">Cargando fecha...</p>
+                    </div>
+                    <div style="text-align:right;position:relative;z-index:1;">
+                        <div style="font-size:.75rem;opacity:.6;">Figuetronic ERP</div>
+                        <div style="font-size:.85rem;font-weight:600;" id="wbTime">--:--</div>
+                    </div>
+                </div>
+                <div class="wb-metrics" id="wbMetrics">
+                    <div class="wb-metric">
+                        <div class="wb-metric-icon" style="background:rgba(16,185,129,.15);color:#34d399;"><i class="fas fa-dollar-sign"></i></div>
+                        <div><div class="wb-metric-val" id="wbVentas">$0</div><div class="wb-metric-lbl">Ventas del mes</div></div>
+                    </div>
+                    <div class="wb-metric">
+                        <div class="wb-metric-icon" style="background:rgba(245,158,11,.15);color:#fbbf24;"><i class="fas fa-tools"></i></div>
+                        <div><div class="wb-metric-val" id="wbOTs">0</div><div class="wb-metric-lbl">OTs activas</div></div>
+                    </div>
+                    <div class="wb-metric">
+                        <div class="wb-metric-icon" style="background:rgba(37,99,235,.15);color:#60a5fa;"><i class="fas fa-chart-line"></i></div>
+                        <div><div class="wb-metric-val" id="wbFlujo">$0</div><div class="wb-metric-lbl">Flujo de caja</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ 2. WORKFLOW RIBBON ═══ -->
+            <div class="workflow-ribbon animate-fade-in-up stagger-1">
+                <div class="wr-title"><i class="fas fa-route"></i> Flujo del Taller</div>
+                <div class="wr-steps">
+                    <div class="wr-line"></div>
+                    <a href="recepcion_unificada.html" class="wr-step">
+                        <div class="wr-step-icon" style="background:rgba(16,185,129,.1);color:#059669;"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="wr-step-name">Recepción</div>
+                    </a>
+                    <div class="wr-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <a href="presupuestos.html" class="wr-step">
+                        <div class="wr-step-icon" style="background:rgba(37,99,235,.1);color:#2563eb;"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="wr-step-name">Presupuesto</div>
+                    </a>
+                    <div class="wr-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <a href="ordenes_trabajo.html" class="wr-step">
+                        <div class="wr-step-icon" style="background:rgba(245,158,11,.1);color:#d97706;"><i class="fas fa-screwdriver-wrench"></i></div>
+                        <div class="wr-step-name">Orden de Trabajo</div>
+                    </a>
+                    <div class="wr-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <a href="ejecucion_ot.html" class="wr-step">
+                        <div class="wr-step-icon" style="background:rgba(236,72,153,.1);color:#db2777;"><i class="fas fa-helmet-safety"></i></div>
+                        <div class="wr-step-name">Ejecución</div>
+                    </a>
+                    <div class="wr-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <a href="ventas.html" class="wr-step">
+                        <div class="wr-step-icon" style="background:rgba(16,185,129,.1);color:#059669;"><i class="fas fa-cash-register"></i></div>
+                        <div class="wr-step-name">Venta</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ═══ 3. KPI FINANCIEROS ═══ -->
+            <div class="kpi-section-title animate-fade-in-up stagger-2"><i class="fas fa-chart-bar"></i> Resumen Financiero</div>
+            <div class="kpi-grid" id="kpiFinancial"></div>
+
+            <!-- ═══ 4. KPI OPERACIONES ═══ -->
+            <div class="kpi-section-title animate-fade-in-up stagger-4"><i class="fas fa-cogs"></i> Operaciones del Taller</div>
+            <div class="kpi-grid" id="kpiOperations"></div>
+
+            <!-- ═══ 5. TODAY'S WORK ═══ -->
+            <div class="today-section animate-fade-in-up stagger-6">
+                <div class="kpi-section-title"><i class="fas fa-calendar-day"></i> Actividad de Hoy</div>
+                <div class="today-grid">
+                    <div class="today-panel" id="panelOTs">
+                        <div class="tp-header">
+                            <h3><i class="fas fa-screwdriver-wrench" style="color:var(--warning);"></i> Órdenes de Trabajo</h3>
+                            <span class="tp-count" id="otCount">0</span>
+                        </div>
+                        <div class="tp-body" id="otList"><div class="tp-empty"><i class="fas fa-spinner fa-spin"></i> Cargando...</div></div>
+                    </div>
+                    <div class="today-panel" id="panelTareas">
+                        <div class="tp-header">
+                            <h3><i class="fas fa-list-check" style="color:var(--primary);"></i> Tareas Pendientes</h3>
+                            <span class="tp-count" id="tareaCount">0</span>
+                        </div>
+                        <div class="tp-body" id="tareaList"><div class="tp-empty"><i class="fas fa-spinner fa-spin"></i> Cargando...</div></div>
+                    </div>
+                    <div class="today-panel" id="panelAlertas">
+                        <div class="tp-header">
+                            <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> Alertas Stock</h3>
+                            <span class="tp-count" id="alertaCount">0</span>
+                        </div>
+                        <div class="tp-body" id="alertaList"><div class="tp-empty"><i class="fas fa-spinner fa-spin"></i> Cargando...</div></div>
+                    </div>
+                    <div class="today-panel" id="panelCorreos">
+                        <div class="tp-header">
+                            <h3><i class="fas fa-envelope" style="color:var(--primary);"></i> Correos Recientes</h3>
+                            <span class="tp-count" id="correoCount">0</span>
+                        </div>
+                        <div class="tp-body" id="correoList"><div class="tp-empty"><i class="fas fa-spinner fa-spin"></i> Cargando...</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ 6. CHARTS ═══ -->
+            <div class="charts-row animate-fade-in-up stagger-7">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-column" style="color:var(--primary);"></i> Flujo Financiero</h3>
+                    <div style="position:relative;height:240px;width:100%;"><canvas id="financeChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-line" style="color:var(--accent);"></i> Tendencia Ventas (12m)</h3>
+                    <div style="position:relative;height:240px;width:100%;"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- ═══ 7. BANK ACCOUNTS ═══ -->
+            <div class="bank-section animate-fade-in-up stagger-8">
+                <div class="kpi-section-title"><i class="fas fa-landmark"></i> Cuentas Bancarias</div>
+                <div class="bank-cards" id="bankCards"><div class="tp-empty"><i class="fas fa-spinner fa-spin"></i> Cargando...</div></div>
+            </div>
+
+            <!-- ═══ 8. MODULE ACCESS GRID ═══ -->
+            <div class="module-access-section animate-fade-in-up stagger-9">
+                <div class="kpi-section-title"><i class="fas fa-th-large"></i> Acceso Rápido a Módulos</div>
+                <div class="module-access-grid" id="moduleGrid"></div>
+            </div>
+        </main>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item active"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar (⌘K)"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+    <script src="js/common.js?v=20260714090000"></script>
+    <script src="js/virtual-scroll.js?v=20260706050000"></script>
+    <script src="js/command-palette.js?v=20260706050000"></script>
+    <script src="js/list-renderer.js?v=20260706050000"></script>
+    <script src="js/dashboard-v2.js?v=20260710020000"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

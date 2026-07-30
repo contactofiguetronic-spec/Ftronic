@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artículos - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260707100000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                    <h1 class="page-title"><i class="fas fa-box"></i> Artículos</h1>
+                </div>
+                <div class="header-right" style="display:flex;align-items:center;gap:.5rem;">
+                    <span class="badge" id="recordCount" style="background:rgba(37,99,235,.1);color:var(--primary)">0 registros</span>
+                    <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+                </div>
+            </header>
+            <div class="breadcrumbs"></div>
+            <div class="module-hero teal">
+                <div class="mh-icon"><i class="fas fa-box"></i></div>
+                <h2>Artículos e Inventario</h2>
+                <div class="mh-subtitle">Inventario de repuestos y productos: stock actual, precios de compra y venta, proveedor y punto de reorden para alertas automáticas.</div>
+            </div>
+            <div class="module-meta">
+                <div class="meta-card">
+                    <div class="mc-label"><i class="fas fa-cog"></i> Función</div>
+                    <div class="mc-value">Control completo del inventario de repuestos. Registra stock actual, precio de compra, precio de venta, proveedor y punto de reorden.</div>
+                </div>
+                <div class="meta-card">
+                    <div class="mc-label"><i class="fas fa-link"></i> Referencia</div>
+                    <div class="mc-value">Módulos relacionados:</div>
+                    <div class="mc-tags"><span class="mc-tag">Proveedores</span><span class="mc-tag">Órdenes de Compra</span><span class="mc-tag">Compras</span><span class="mc-tag">Órdenes de Trabajo</span></div>
+                </div>
+                <div class="meta-card">
+                    <div class="mc-label"><i class="fas fa-tags"></i> Categoría</div>
+                    <div class="mc-value">Stock</div>
+                    <div class="mc-tags"><span class="mc-tag accent">Stock</span><span class="mc-tag">Inventario</span><span class="mc-tag accent">Productos</span></div>
+                </div>
+            </div>
+            <div class="module-help-enhanced">
+                <i class="fas fa-lightbulb mhe-icon"></i>
+                <div>
+                    <strong>¿Cómo usar este módulo?</strong> Registrar artículo con categoría. Luego establecer precios y stock inicial, configurar punto de reorden y finalmente registrar entradas y salidas.
+                    <div class="mhe-steps"><span class="mhe-step"><span class="step-num">1</span> Registrar artículo con categoría</span><span class="mhe-step"><span class="step-num">2</span> Establecer precios y stock inicial</span><span class="mhe-step"><span class="step-num">3</span> Configurar punto de reorden</span><span class="mhe-step"><span class="step-num">4</span> Registrar entradas y salidas</span></div>
+                </div>
+            </div>
+            <!-- ═══ LIST VIEW ═══ -->
+        <div id="listView">
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, código o proveedor...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">AR</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><i class="fas fa-box"></i> Datos</div>
+                <div class="ficha-tab" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</div>
+                <div class="ficha-tab" data-tab="proveedores"><i class="fas fa-truck"></i> Proveedores</div>
+                <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-images"></i> Imágenes</div>
+            </div>
+
+            <!-- Tab: Datos -->
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Nombre <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group"><label>Código</label><input type="text" id="codigo" name="codigo"></div>
+                        <div class="form-group"><label>Stock Actual</label><input type="number" step="any" id="stock_actual" name="stock_actual" value="0"></div>
+                        <div class="form-group"><label>Stock Mínimo</label><input type="number" step="any" id="stock_minimo" name="stock_minimo" value="0"></div>
+                        <div class="form-group"><label>Valor Referencia ($)</label><input type="number" step="any" id="valor_referencia" name="valor_referencia"></div>
+                        <div class="form-group"><label>Valor Compra ($)</label><input type="number" step="any" id="valor_compra" name="valor_compra"></div>
+                        <div class="form-group"><label>Valor Venta ($)</label><input type="number" step="any" id="valor_venta" name="valor_venta"></div>
+                        <div class="form-group"><label>Ubicación</label><input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Estante A-3"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Stock -->
+            <div class="ficha-panel" id="tabStock">
+                <div id="stockMovementsContainer">
+                    <div class="empty-state"><i class="fas fa-warehouse"></i><p>Seleccione un artículo para ver movimientos</p></div>
+                </div>
+            </div>
+
+            <!-- Tab: Proveedores -->
+            <div class="ficha-panel" id="tabProveedores">
+                <div id="proveedoresContainer">
+                    <div class="empty-state"><i class="fas fa-truck"></i><p>Sin proveedores vinculados</p></div>
+                </div>
+            </div>
+
+            <!-- Tab: Adjuntos (Imágenes de referencia) -->
+            <div class="ficha-panel" id="tabAdjuntos">
+                <div class="form-section">
+                    <h3><i class="fas fa-images"></i> Imágenes de Referencia</h3>
+                    <p class="form-hint">Adjunte fotos del artículo (catálogo, etiqueta, ubicación). La primera foto se usa como miniatura en la lista.</p>
+                    <div id="existingMediaContainer" style="display:none; margin-bottom:1rem;">
+                        <div class="media-grid" id="existingMediaGrid"></div>
+                    </div>
+                    <div class="multimedia-toolbar" id="multimediaToolbar"></div>
+                    <div class="upload-zone compact" id="uploadZone" style="margin-top:0.75rem;">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra imágenes aquí o usa los botones de arriba</p>
+                        <input type="file" class="upload-file-input" id="uploadFileInput" multiple accept="image/*,application/pdf" style="display:none;">
+                    </div>
+                    <div class="actions" style="margin-top:1rem;">
+                        <button type="button" class="btn btn-primary" id="btnSubirImagenes" disabled>
+                            <i class="fas fa-upload"></i> Subir Imágenes
+                        </button>
+                        <span id="uploadStatus" style="margin-left:0.75rem;font-size:0.82rem;color:var(--text-secondary);"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="articulos.html" class="bottom-nav-item active"><i class="fas fa-box"></i><span>Artículos</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+                <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar (⌘K)"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+    <script src="js/common.js?v=20260714090000"></script>
+    <script src="js/command-palette.js?v=20260706050000"></script>
+    <script src="js/articulos.js?v=20260707100000"></script>
+</body>
+</html>

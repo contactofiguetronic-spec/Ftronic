@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas Bancarias - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fin-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.8rem;margin-bottom:1.2rem}
+        .fin-kpi{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:1rem 1.2rem;position:relative;overflow:hidden}
+        .fin-kpi::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px}
+        .fin-kpi.kpi-saldo::before{background:var(--primary)}
+        .fin-kpi.kpi-ingreso::before{background:var(--success)}
+        .fin-kpi.kpi-egreso::before{background:var(--danger)}
+        .fin-kpi.kpi-balance::before{background:var(--accent)}
+        .fin-kpi .kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.5rem}
+        .fin-kpi.kpi-saldo .kpi-icon{background:rgba(37,99,235,.12);color:var(--primary)}
+        .fin-kpi.kpi-ingreso .kpi-icon{background:rgba(16,185,129,.12);color:var(--success)}
+        .fin-kpi.kpi-egreso .kpi-icon{background:rgba(239,68,68,.12);color:var(--danger)}
+        .fin-kpi.kpi-balance .kpi-icon{background:rgba(245,158,11,.12);color:var(--accent)}
+        .fin-kpi .kpi-label{font-size:.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+        .fin-kpi .kpi-value{font-size:1.4rem;font-weight:700;color:var(--text-primary);margin-top:.15rem}
+        .fin-kpi .kpi-sub{font-size:.7rem;color:var(--text-secondary);margin-top:.2rem}
+        .fin-kpi .kpi-change{font-size:.68rem;font-weight:600;margin-top:.15rem}
+        .fin-kpi .kpi-change.up{color:var(--success)}
+        .fin-kpi .kpi-change.down{color:var(--danger)}
+
+        .account-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem}
+        .account-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:1.2rem;cursor:pointer;transition:all .2s;position:relative}
+        .account-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.15)}
+        .account-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(37,99,235,.25)}
+        .account-card .ac-header{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}
+        .account-card .ac-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:linear-gradient(135deg,var(--primary),#6366f1);color:#fff;flex-shrink:0}
+        .account-card .ac-name{font-weight:700;font-size:.95rem;color:var(--text-primary)}
+        .account-card .ac-bank{font-size:.75rem;color:var(--text-secondary)}
+        .account-card .ac-type{font-size:.65rem;padding:.15rem .5rem;border-radius:4px;background:rgba(37,99,235,.1);color:var(--primary);font-weight:600;margin-top:.2rem;display:inline-block}
+        .account-card .ac-balance{margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border-color)}
+        .account-card .ac-balance-label{font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+        .account-card .ac-balance-value{font-size:1.5rem;font-weight:700;color:var(--text-primary);margin-top:.1rem}
+        .account-card .ac-balance-value.positive{color:var(--success)}
+        .account-card .ac-balance-value.negative{color:var(--danger)}
+        .account-card .ac-stats{display:flex;gap:1rem;margin-top:.8rem}
+        .account-card .ac-stat{flex:1}
+        .account-card .ac-stat-label{font-size:.65rem;color:var(--text-secondary)}
+        .account-card .ac-stat-value{font-size:.85rem;font-weight:600;color:var(--text-primary)}
+        .account-card .ac-stat-value.income{color:var(--success)}
+        .account-card .ac-stat-value.expense{color:var(--danger)}
+
+        .movimientos-section{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:1.2rem;margin-bottom:1.5rem}
+        .mov-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+        .mov-header h3{font-size:1rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:.5rem}
+        .mov-filters{display:flex;gap:.5rem;flex-wrap:wrap}
+        .mov-filters select,.mov-filters input{padding:.4rem .7rem;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-primary);font-size:.78rem}
+        .mov-table-wrap{overflow-x:auto}
+        .mov-table{width:100%;border-collapse:collapse;font-size:.82rem}
+        .mov-table th{text-align:left;padding:.6rem .7rem;border-bottom:2px solid var(--border-color);color:var(--text-secondary);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+        .mov-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border-color);color:var(--text-primary)}
+        .mov-table tr:hover td{background:rgba(37,99,235,.03)}
+        .mov-tipo-badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
+        .mov-tipo-badge.ingreso{background:rgba(16,185,129,.12);color:var(--success)}
+        .mov-tipo-badge.egreso{background:rgba(239,68,68,.12);color:var(--danger)}
+        .mov-tipo-badge.transferencia{background:rgba(37,99,235,.12);color:var(--primary)}
+        .mov-monto{font-weight:700}
+        .mov-monto.positive{color:var(--success)}
+        .mov-monto.negative{color:var(--danger)}
+        .mov-empty{text-align:center;padding:2rem;color:var(--text-secondary);font-size:.85rem}
+
+        .movimiento-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:var(--z-modal);display:none;align-items:center;justify-content:center}
+        .movimiento-modal-overlay.active{display:flex}
+        .movimiento-modal{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:1.5rem;width:90%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+        .movimiento-modal h3{font-size:1.05rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+
+        @media(max-width:768px){
+            .fin-kpi-grid{grid-template-columns:1fr 1fr}
+            .account-card-grid{grid-template-columns:1fr}
+            .mov-filters{width:100%}
+        }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-bank"><i class="fas fa-landmark"></i></span> Cuentas Bancarias</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- KPIs FINANCIEROS -->
+        <div class="fin-kpi-grid" id="kpiGrid">
+            <div class="fin-kpi kpi-saldo">
+                <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+                <div class="kpi-label">Saldo Total</div>
+                <div class="kpi-value" id="kpiSaldoTotal">$0</div>
+                <div class="kpi-sub" id="kpiCuentasCount">0 cuentas</div>
+            </div>
+            <div class="fin-kpi kpi-ingreso">
+                <div class="kpi-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="kpi-label">Ingresos del Mes</div>
+                <div class="kpi-value" id="kpiIngresosMes">$0</div>
+                <div class="kpi-change" id="kpiIngresosChange"></div>
+            </div>
+            <div class="fin-kpi kpi-egreso">
+                <div class="kpi-icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="kpi-label">Egresos del Mes</div>
+                <div class="kpi-value" id="kpiEgresosMes">$0</div>
+                <div class="kpi-change" id="kpiEgresosChange"></div>
+            </div>
+            <div class="fin-kpi kpi-balance">
+                <div class="kpi-icon"><i class="fas fa-balance-scale"></i></div>
+                <div class="kpi-label">Balance del Mes</div>
+                <div class="kpi-value" id="kpiBalanceMes">$0</div>
+                <div class="kpi-sub" id="kpiMovimientosHoy">0 movimientos hoy</div>
+            </div>
+        </div>
+
+        <!-- TARJETAS DE CUENTAS -->
+        <div class="section-header" style="margin-top:.5rem">
+            <h2><span class="nav-icon-box icon-card"><i class="fas fa-credit-card"></i></span> Mis Cuentas</h2>
+            <div style="display:flex;gap:.5rem">
+                <button class="btn btn-sm btn-outline" id="btnNuevoMovimiento"><i class="fas fa-plus"></i> Movimiento</button>
+                <button class="btn btn-sm btn-accent" id="btnTransferir"><i class="fas fa-exchange-alt"></i> Transferir</button>
+                <button class="btn btn-sm btn-primary" id="btnNueva"><i class="fas fa-plus"></i> Nueva Cuenta</button>
+            </div>
+        </div>
+        <div class="account-card-grid" id="accountGrid"></div>
+
+        <!-- HISTORIAL DE MOVIMIENTOS -->
+        <div class="movimientos-section">
+            <div class="mov-header">
+                <h3><i class="fas fa-exchange-alt"></i> Historial de Movimientos</h3>
+                <div class="mov-filters">
+                    <select id="filterCuenta">
+                        <option value="">Todas las cuentas</option>
+                    </select>
+                    <select id="filterTipo">
+                        <option value="">Todos los tipos</option>
+                        <option value="ingreso">Ingresos</option>
+                        <option value="egreso">Egresos</option>
+                        <option value="transferencia">Transferencias</option>
+                    </select>
+                    <input type="date" id="filterFechaDesde" placeholder="Desde">
+                    <input type="date" id="filterFechaHasta" placeholder="Hasta">
+                    <button class="btn btn-sm btn-outline" id="btnFiltrar"><i class="fas fa-filter"></i></button>
+                </div>
+            </div>
+            <div class="mov-table-wrap">
+                <table class="mov-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Concepto</th>
+                            <th>Cuenta</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movimientosBodyAll">
+                        <tr><td colspan="5" class="mov-empty"><i class="fas fa-inbox"></i> No hay movimientos</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="movimientosPagination"></div>
+        </div>
+
+        <!-- MODAL: NUEVO MOVIMIENTO -->
+        <div class="movimiento-modal-overlay" id="modalMovimiento">
+            <div class="movimiento-modal">
+                <h3><i class="fas fa-exchange-alt"></i> Nuevo Movimiento</h3>
+                <form id="formMovimiento">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Cuenta <span class="required-dot">*</span></label>
+                            <select id="movCuenta" name="cuenta_bancaria_id" required>
+                                <option value="">— Seleccionar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo <span class="required-dot">*</span></label>
+                            <select id="movTipo" name="tipo" required>
+                                <option value="">— Seleccionar —</option>
+                                <option value="ingreso">Ingreso (Depósito)</option>
+                                <option value="egreso">Egreso (Retiro)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto ($) <span class="required-dot">*</span></label>
+                            <input type="number" id="movMonto" name="monto" min="1" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="movFecha" name="fecha">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label>Concepto</label>
+                            <textarea id="movConcepto" name="concepto" rows="2" placeholder="Descripción del movimiento..."></textarea>
+                        </div>
+                    </div>
+                    <div class="actions" style="margin-top:1rem">
+                        <button type="button" class="btn btn-sm btn-outline" id="btnCerrarMov"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-sm btn-primary" id="btnGuardarMov"><i class="fas fa-save"></i> Registrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: TRANSFERENCIA -->
+        <div class="movimiento-modal-overlay" id="modalTransferir">
+            <div class="movimiento-modal">
+                <h3><i class="fas fa-exchange-alt"></i> Transferir entre Cuentas</h3>
+                <form id="formTransferir">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Cuenta Origen <span class="required-dot">*</span></label>
+                            <select id="transOrigen" name="cuenta_origen_id" required>
+                                <option value="">— Seleccionar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cuenta Destino <span class="required-dot">*</span></label>
+                            <select id="transDestino" name="cuenta_destino_id" required>
+                                <option value="">— Seleccionar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto ($) <span class="required-dot">*</span></label>
+                            <input type="number" id="transMonto" name="monto" min="1" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="transFecha" name="fecha">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label>Concepto</label>
+                            <textarea id="transConcepto" name="concepto" rows="2" placeholder="Motivo de la transferencia..."></textarea>
+                        </div>
+                    </div>
+                    <div class="actions" style="margin-top:1rem">
+                        <button type="button" class="btn btn-sm btn-outline" id="btnCerrarTrans"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-sm btn-accent" id="btnGuardarTrans"><i class="fas fa-save"></i> Transferir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ═══ FICHA COMPLETA ═══ -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-header">
+                <div class="ficha-avatar" id="fichaAvatar">CB</div>
+                <div class="ficha-info">
+                    <h2 id="fichaTitle">—</h2>
+                    <div class="ficha-sub" id="fichaSub">—</div>
+                </div>
+                <div class="ficha-actions">
+                    <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <button class="btn btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="fichaStats"></div>
+
+            <div class="ficha-tabs" id="fichaTabs">
+                <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-bank"><i class="fas fa-landmark"></i></span> Datos</div>
+                <div class="ficha-tab" data-tab="movimientos"><i class="fas fa-exchange-alt"></i> Movimientos</div>
+            </div>
+
+            <div class="ficha-panel active" id="tabDatos">
+                <form id="dataForm">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Nombre <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" required></div>
+                        <div class="form-group"><label>Banco</label><div class="select-wrapper"><select id="banco" name="banco" data-category="bancos"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Número Cuenta</label><input type="text" id="numero_cuenta" name="numero_cuenta" placeholder="Ej: 123456789"></div>
+                        <div class="form-group"><label>Tipo Cuenta</label><div class="select-wrapper"><select id="tipo_cuenta" name="tipo_cuenta" data-category="tipo_cuenta_bancaria"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Saldo Inicial ($)</label><input type="number" step="any" id="saldo_inicial" name="saldo_inicial" value="0"></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ficha-panel" id="tabMovimientos">
+                <div class="mov-table-wrap">
+                    <table class="mov-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movimientosBody">
+                            <tr><td colspan="4" class="mov-empty"><i class="fas fa-inbox"></i> No hay movimientos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="movimientosPaginationFicha"></div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/cuentas_bancarias.js?v=20260709140000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

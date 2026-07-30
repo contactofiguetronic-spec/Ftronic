@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Venta Rápida - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260710010000">
+    <link rel="stylesheet" href="css/pos.css?v=20260710010000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span> POS — Venta Rápida</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn-help" id="btnHelp" title="Ayuda"><i class="fas fa-question"></i></button>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+
+    <div class="pos-layout">
+        <!-- ═══ PANEL IZQUIERDO: Catálogo ═══ -->
+        <div class="pos-catalog">
+            <div class="pos-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="posSearch" placeholder="Buscar artículo o servicio..." autofocus>
+            </div>
+            <div class="pos-grid" id="posGrid">
+                <div class="pos-empty"><i class="fas fa-box-open" style="font-size:2.5rem;opacity:0.25;display:block;margin-bottom:0.5rem;"></i>Busque por nombre o código</div>
+            </div>
+        </div>
+
+        <!-- ═══ PANEL DERECHO: Carro ═══ -->
+        <div class="pos-cart">
+            <div class="pos-cart-header">
+                <h3><i class="fas fa-receipt"></i> Venta</h3>
+                <button class="btn btn-sm btn-danger" id="btnClearCart" title="Vaciar carro"><i class="fas fa-trash-can"></i></button>
+            </div>
+            <div class="pos-cart-items" id="cartItems">
+                <div class="pos-cart-empty" id="cartEmpty"><i class="fas fa-cart-shopping" style="font-size:2rem;opacity:0.25;display:block;margin-bottom:0.5rem;"></i>Agregue productos</div>
+            </div>
+            <div class="pos-cart-totals" id="cartTotals">
+                <div class="pos-total-row"><span>Subtotal</span><span id="posSubtotal">$0</span></div>
+                <div class="pos-total-row"><span>IVA (19%)</span><span id="posIva">$0</span></div>
+                <div class="pos-total-row pos-total-gran"><span>TOTAL</span><span id="posTotal">$0</span></div>
+            </div>
+            <div class="pos-cart-actions">
+                <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">Cuenta destino</label>
+                <select id="posCuenta" class="form-control" style="font-size:0.82rem;"></select>
+                <label style="font-size:0.78rem;color:var(--text-secondary);display:block;margin:0.5rem 0 0.25rem;">Forma de pago</label>
+                <select id="posFormaPago" class="form-control" style="font-size:0.82rem;">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="debito">Débito</option>
+                    <option value="credito">Crédito</option>
+                    <option value="qr">QR / link</option>
+                </select>
+                <button class="btn btn-success btn-block" id="btnConfirmar" style="margin-top:0.75rem;" disabled>
+                    <i class="fas fa-check-circle"></i> Confirmar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="emptyState" style="display:none;text-align:center;padding:3rem;color:var(--text-secondary);">
+        <i class="fas fa-cart-shopping" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem;"></i>
+        <p>Sin resultados</p>
+    </div>
+</main>
+
+<!-- Modal Éxito -->
+<div class="modal" id="successModal">
+    <div class="modal-content modal-sm" style="text-align:center;">
+        <div class="modal-body" style="padding:2rem;">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(46,160,67,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);"></i>
+            </div>
+            <h3 style="margin-bottom:0.5rem;" id="successTitle">Venta Registrada</h3>
+            <p style="color:var(--text-secondary);font-size:0.9rem;" id="successMsg">La venta fue registrada exitosamente.</p>
+            <p style="font-size:1.3rem;font-weight:700;color:var(--success);margin:1rem 0;" id="successTotal">$0</p>
+            <button class="btn btn-secondary" onclick="el('successModal').classList.remove('active');resetCart();"><i class="fas fa-plus"></i> Nueva Venta</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Error Stock -->
+<div class="modal" id="errorStockModal">
+    <div class="modal-content modal-sm" style="text-align:center;">
+        <div class="modal-body" style="padding:1.5rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);display:block;margin-bottom:0.5rem;"></i>
+            <h3 style="margin-bottom:0.5rem;">Stock Insuficiente</h3>
+            <p style="color:var(--text-secondary);font-size:0.85rem;" id="errorStockMsg"></p>
+            <button class="btn btn-secondary" onclick="el('errorStockModal').classList.remove('active')" style="margin-top:1rem;">Entendido</button>
+        </div>
+    </div>
+</div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item active"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/pos.js?v=20260710010000"></script>
+<script src="js/command-palette.js?v=20260710010000"></script>
+</body>
+</html>

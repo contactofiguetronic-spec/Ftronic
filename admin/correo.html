@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correo Electronico - Figuetronic</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/index.css?v=20260712210000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ═══ CORREO ELECTRONICO ═══════════════════════════════════════════ */
+
+        .correo-layout {
+            display: grid;
+            grid-template-columns: 200px 340px 1fr;
+            gap: 0;
+            height: calc(100vh - 130px);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .correo-sidebar {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .correo-sidebar-section {
+            padding: .7rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .correo-sidebar-title {
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-secondary);
+            margin-bottom: .4rem;
+        }
+        .correo-account-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .4rem .5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .78rem;
+            color: var(--text-secondary);
+            transition: background .15s;
+        }
+        .correo-account-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .correo-account-item.active { background: var(--primary-tint); color: var(--primary); font-weight: 600; }
+        .correo-account-item .acct-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: #fff;
+            font-size: .6rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .correo-filter-item {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .3rem .5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: .76rem;
+            color: var(--text-secondary);
+            transition: all .15s;
+        }
+        .correo-filter-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .correo-filter-item.active { color: var(--primary); font-weight: 600; }
+        .correo-filter-item i { width: 14px; text-align: center; font-size: .7rem; }
+
+        .correo-sync-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            width: calc(100% - 1.4rem);
+            margin: .7rem;
+            padding: .45rem;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: .76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .correo-sync-btn:hover { opacity: .9; }
+        .correo-sync-btn.loading i { animation: correoSpin 1s linear infinite; }
+        @keyframes correoSpin { to { transform: rotate(360deg); } }
+
+        .correo-search-box {
+            padding: .5rem .7rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .correo-search-wrap { position: relative; }
+        .correo-search-input {
+            width: 100%;
+            padding: .35rem .5rem .35rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: .78rem;
+            background: var(--bg-base);
+            outline: none;
+            color: var(--text-primary);
+        }
+        .correo-search-input:focus { border-color: var(--primary); }
+        .correo-search-wrap i {
+            position: absolute; left: .45rem; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary); font-size: .7rem;
+        }
+
+        /* ── Message List ── */
+        .correo-list {
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .correo-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem .8rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-base);
+        }
+        .correo-list-header h3 { font-size: .82rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+        .correo-list-count { font-size: .72rem; color: var(--text-secondary); }
+        .correo-list-scroll { flex: 1; overflow-y: auto; }
+
+        .correo-msg-item {
+            display: flex;
+            gap: .6rem;
+            padding: .6rem .8rem;
+            border-bottom: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: background .12s;
+            border-left: 3px solid transparent;
+        }
+        .correo-msg-item:hover { background: var(--bg-hover); }
+        .correo-msg-item.active { background: var(--primary-light); border-left-color: var(--primary); }
+        .correo-msg-item.unread { background: rgba(75,123,236,.02); }
+        .correo-msg-item.unread .correo-msg-subject { font-weight: 700; }
+        .correo-msg-item.unread .correo-msg-sender { font-weight: 600; color: var(--text-primary); }
+
+        .correo-msg-avatar {
+            width: 34px; height: 34px; min-width: 34px;
+            border-radius: 50%; background: var(--primary-tint); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .7rem; font-weight: 700;
+        }
+        .correo-msg-content { flex: 1; min-width: 0; }
+        .correo-msg-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1px; }
+        .correo-msg-sender { font-size: .8rem; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .correo-msg-date { font-size: .65rem; color: var(--text-tertiary); white-space: nowrap; margin-left: .4rem; }
+        .correo-msg-subject { font-size: .78rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
+        .correo-msg-preview { font-size: .72rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .correo-msg-flags { display: flex; gap: .25rem; margin-top: 2px; }
+        .correo-msg-flags i { font-size: .6rem; }
+        .correo-msg-flags .flag-attachment { color: var(--text-tertiary); }
+        .correo-msg-flags .flag-flagged { color: var(--warning); }
+        .correo-msg-flags .flag-client { color: var(--accent); }
+
+        .correo-list-empty {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; color: var(--text-secondary); gap: .4rem;
+        }
+        .correo-list-empty i { font-size: 1.8rem; opacity: .3; }
+        .correo-list-empty span { font-size: .82rem; }
+
+        /* ── Reader ── */
+        .correo-reader { display: flex; flex-direction: column; overflow: hidden; }
+        .correo-reader-empty {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; color: var(--text-secondary); gap: .5rem;
+        }
+        .correo-reader-empty i { font-size: 2.2rem; opacity: .25; }
+
+        .correo-reader-header {
+            padding: .7rem .9rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-base);
+        }
+        .correo-reader-actions { display: flex; gap: .35rem; margin-bottom: .4rem; }
+        .correo-reader-actions button {
+            display: flex; align-items: center; gap: .25rem;
+            padding: .25rem .5rem;
+            border: 1px solid var(--border-color); border-radius: 5px;
+            background: var(--bg-card); color: var(--text-secondary);
+            font-size: .72rem; cursor: pointer; transition: all .15s;
+        }
+        .correo-reader-actions button:hover { border-color: var(--primary); color: var(--primary); }
+        .correo-reader-subject { font-size: .95rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+
+        .correo-reader-meta { display: flex; align-items: center; gap: .6rem; margin-top: .35rem; font-size: .75rem; color: var(--text-secondary); }
+        .correo-reader-meta .meta-avatar {
+            width: 30px; height: 30px; min-width: 30px; border-radius: 50%;
+            background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .65rem; font-weight: 700;
+        }
+        .correo-reader-meta .meta-from { font-weight: 600; color: var(--text-primary); }
+        .correo-reader-meta .meta-email { color: var(--text-secondary); }
+        .correo-reader-meta .meta-to { font-size: .7rem; }
+
+        .correo-reader-body { flex: 1; overflow-y: auto; padding: .8rem; }
+        .correo-reader-body iframe { width: 100%; height: 100%; min-height: 280px; border: none; background: #fff; }
+        .correo-reader-body .body-text { font-size: .85rem; line-height: 1.7; color: var(--text-primary); white-space: pre-wrap; }
+
+        .correo-attachments-bar {
+            display: flex; flex-wrap: wrap; gap: .3rem;
+            padding: .4rem .8rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-base);
+        }
+        .correo-attach-chip {
+            display: flex; align-items: center; gap: .25rem;
+            padding: .25rem .5rem;
+            border: 1px solid var(--border-color); border-radius: 5px;
+            font-size: .72rem; color: var(--text-primary); cursor: pointer;
+            transition: all .15s; text-decoration: none;
+        }
+        .correo-attach-chip:hover { border-color: var(--primary); color: var(--primary); }
+        .correo-attach-chip i { color: var(--text-tertiary); }
+
+        /* ── Reply ── */
+        .correo-reply-box { border-top: 1px solid var(--border-color); background: var(--bg-base); padding: .7rem .8rem; }
+        .correo-reply-toolbar { display: flex; gap: .25rem; margin-bottom: .4rem; }
+        .correo-reply-toolbar button {
+            padding: .2rem .4rem;
+            border: 1px solid var(--border-color); border-radius: 4px;
+            background: var(--bg-card); color: var(--text-secondary);
+            font-size: .72rem; cursor: pointer;
+        }
+        .correo-reply-toolbar button:hover { border-color: var(--primary); color: var(--primary); }
+        .correo-reply-textarea {
+            width: 100%; min-height: 70px; max-height: 180px;
+            padding: .4rem;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            font-family: inherit; font-size: .82rem;
+            resize: vertical; outline: none; color: var(--text-primary);
+        }
+        .correo-reply-textarea:focus { border-color: var(--primary); }
+        .correo-reply-footer { display: flex; justify-content: space-between; align-items: center; margin-top: .4rem; }
+        .correo-reply-footer label {
+            display: flex; align-items: center; gap: .25rem;
+            font-size: .72rem; color: var(--text-secondary); cursor: pointer;
+        }
+        .correo-send-btn {
+            display: flex; align-items: center; gap: .25rem;
+            padding: .35rem .8rem;
+            background: var(--primary); color: #fff; border: none;
+            border-radius: 5px; font-size: .78rem; font-weight: 600; cursor: pointer;
+        }
+        .correo-send-btn:hover { opacity: .9; }
+        .correo-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ── Pagination ── */
+        .correo-pagination {
+            display: flex; align-items: center; justify-content: center; gap: .25rem;
+            padding: .4rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-base);
+        }
+        .correo-page-btn {
+            padding: .2rem .4rem;
+            border: 1px solid var(--border-color); border-radius: 4px;
+            background: var(--bg-card); font-size: .72rem; cursor: pointer;
+            color: var(--text-primary);
+        }
+        .correo-page-btn:hover { border-color: var(--primary); }
+        .correo-page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .correo-page-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+        /* ── Toast ── */
+        .correo-toast {
+            position: fixed; bottom: 20px; right: 20px; z-index: 10000;
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 20px; border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            font-size: .88rem; font-weight: 500;
+            animation: correoToastIn .3s ease;
+        }
+        @keyframes correoToastIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ── Mobile ── */
+        @media (max-width: 1024px) {
+            .correo-layout { grid-template-columns: 1fr; height: calc(100vh - 140px); }
+            .correo-sidebar { display: none; }
+            .correo-reader { display: none; }
+            .correo-layout.show-reader .correo-list { display: none; }
+            .correo-layout.show-reader .correo-reader { display: flex; }
+        }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-email"><i class="fas fa-envelope"></i></span> Correo Electronico</h1>
+            </div>
+            <div class="header-right">
+                <span class="correo-unread-badge" id="unreadBadge" style="display:none; background:var(--primary-tint); color:var(--primary); padding:.25rem .6rem; border-radius:8px; font-size:.78rem; font-weight:600;">
+                    <i class="fas fa-envelope"></i> <span id="unreadCount">0</span> nuevos
+                </span>
+                <button class="btn btn-sm btn-outline" id="btnHeaderSync" title="Sincronizar"><i class="fas fa-sync-alt"></i></button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del modulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <div class="correo-layout" id="correoLayout">
+            <div class="correo-sidebar">
+                <div class="correo-sidebar-section">
+                    <div class="correo-sidebar-title">Cuentas</div>
+                    <div id="cuentasList"></div>
+                </div>
+                <div class="correo-sidebar-section">
+                    <div class="correo-sidebar-title">Filtros</div>
+                    <div class="correo-filter-item active" data-filter="all" onclick="correoSetFilter('all')">
+                        <i class="fas fa-inbox"></i> Todos
+                    </div>
+                    <div class="correo-filter-item" data-filter="unread" onclick="correoSetFilter('unread')">
+                        <i class="fas fa-envelope"></i> No leidos
+                    </div>
+                    <div class="correo-filter-item" data-filter="flagged" onclick="correoSetFilter('flagged')">
+                        <i class="fas fa-star"></i> Importantes
+                    </div>
+                    <div class="correo-filter-item" data-filter="attachments" onclick="correoSetFilter('attachments')">
+                        <i class="fas fa-paperclip"></i> Con adjuntos
+                    </div>
+                </div>
+                <div class="correo-sidebar-section" style="flex:1;">
+                    <div class="correo-sidebar-title">Carpeta</div>
+                    <div class="correo-filter-item active" data-folder="INBOX">
+                        <i class="fas fa-inbox"></i> Bandeja de entrada
+                    </div>
+                </div>
+                <button class="correo-sync-btn" id="syncBtn" onclick="correoSync()">
+                    <i class="fas fa-sync-alt"></i> Sincronizar
+                </button>
+            </div>
+
+            <div class="correo-list">
+                <div class="correo-list-header">
+                    <h3>Bandeja de Entrada</h3>
+                    <span class="correo-list-count" id="listCount"></span>
+                </div>
+                <div class="correo-search-box">
+                    <div class="correo-search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="correo-search-input" id="searchInput" placeholder="Buscar correos..." onkeyup="correoDebounceSearch()">
+                    </div>
+                </div>
+                <div class="correo-list-scroll" id="msgList"></div>
+                <div class="correo-pagination" id="pagination"></div>
+            </div>
+
+            <div class="correo-reader" id="readerPanel">
+                <div class="correo-reader-empty" id="readerEmpty">
+                    <i class="fas fa-envelope-open"></i>
+                    <span>Selecciona un correo para leerlo</span>
+                </div>
+                <div id="readerContent" style="display:none; flex-direction:column; height:100%;">
+                    <div class="correo-reader-header">
+                        <div class="correo-reader-actions">
+                            <button onclick="correoReply()"><i class="fas fa-reply"></i> Responder</button>
+                            <button onclick="correoForward()"><i class="fas fa-share"></i> Reenviar</button>
+                            <button onclick="correoToggleFlag()" id="btnFlag"><i class="far fa-star"></i></button>
+                            <button onclick="correoBackToList()"><i class="fas fa-arrow-left"></i> Volver</button>
+                        </div>
+                        <h2 class="correo-reader-subject" id="readerSubject"></h2>
+                        <div class="correo-reader-meta" id="readerMeta"></div>
+                    </div>
+                    <div class="correo-reader-body" id="readerBody"></div>
+                    <div class="correo-attachments-bar" id="attachmentsBar" style="display:none;"></div>
+                    <div class="correo-reply-box" id="replyBox" style="display:none;">
+                        <div class="correo-reply-toolbar">
+                            <button onclick="correoInsertBold()"><b>B</b></button>
+                            <button onclick="correoInsertItalic()"><i>I</i></button>
+                            <button onclick="correoInsertLink()"><i class="fas fa-link"></i></button>
+                        </div>
+                        <textarea class="correo-reply-textarea" id="replyTextarea" placeholder="Escribe tu respuesta..."></textarea>
+                        <div class="correo-reply-footer">
+                            <label><i class="fas fa-paperclip"></i> Adjuntar <input type="file" id="replyFiles" multiple style="display:none;" accept="*/*"></label>
+                            <button class="correo-send-btn" id="sendBtn" onclick="correoSendReply()">
+                                <i class="fas fa-paper-plane"></i> Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/common.js?v=20260714090000"></script>
+    <script src="js/correo.js?v=20260712210000"></script>
+</body>
+</html>

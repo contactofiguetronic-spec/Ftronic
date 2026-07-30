@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260710020000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span> Pagos</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar"><i class="fas fa-search"></i></button>
+            <button class="btn-help" id="btnHelp" title="Ayuda"><i class="fas fa-question"></i></button>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+    <div class="module-hero orange">
+        <div class="mh-icon"><i class="fas fa-calendar-check"></i></div>
+        <h2>Pagos</h2>
+        <div class="mh-subtitle">Registrar pagos directos y gestionar pagos recurrentes (arriendos, créditos, sueldos, seguros, servicios, impuestos).</div>
+    </div>
+
+    <!-- ═══ TABS ═══ -->
+    <div class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="directos">
+            <i class="fas fa-cash-register"></i> Pagos
+        </button>
+        <button class="tab-btn" data-tab="plazos">
+            <i class="fas fa-calendar-check"></i> Pagos a Plazos
+        </button>
+    </div>
+
+    <!-- ═══ TAB: PAGOS DIRECTOS ═══ -->
+    <div class="tab-content active" id="tabDirectos">
+        <div class="ot-kpi-row" id="kpiRowDirectos">
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiDirTotal">0</span><span class="ot-kpi-lbl">Pagos este mes</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiDirMonto">$0</span><span class="ot-kpi-lbl">Monto total</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiDirHoy">$0</span><span class="ot-kpi-lbl">Pagados hoy</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiDirPromedio">$0</span><span class="ot-kpi-lbl">Promedio</span></div>
+        </div>
+
+        <div class="ot-toolbar">
+            <div class="ot-toolbar-left">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchDirectos" placeholder="Buscar por concepto, receptor...">
+                </div>
+            </div>
+            <div class="ot-toolbar-right">
+                <button class="btn btn-sm btn-success" id="btnNuevoPagoDirecto"><i class="fas fa-plus"></i> Registrar Pago</button>
+            </div>
+        </div>
+
+        <div class="card-grid" id="cardGridDirectos"></div>
+        <div id="paginationContainerDirectos"></div>
+        <div id="emptyStateDirectos" style="display:none;text-align:center;padding:3rem;color:var(--text-secondary);">
+            <i class="fas fa-cash-register" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem;"></i>
+            <p>No hay pagos directos registrados</p>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: PAGOS A PLAZOS ═══ -->
+    <div class="tab-content" id="tabPlazos">
+        <div class="ot-kpi-row" id="kpiRowPlazos">
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiPlazosTotal">0</span><span class="ot-kpi-lbl">Total plazos</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiPlazosPendiente">$0</span><span class="ot-kpi-lbl">Pendiente</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiPlazosPagado">$0</span><span class="ot-kpi-lbl">Pagado este mes</span></div>
+            <div class="ot-kpi-card"><span class="ot-kpi-val" id="kpiPlazosVencido">$0</span><span class="ot-kpi-lbl">Vencido</span></div>
+        </div>
+
+        <div class="ot-toolbar">
+            <div class="ot-toolbar-left">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchPlazos" placeholder="Buscar por concepto, receptor...">
+                </div>
+            </div>
+            <div class="ot-toolbar-right">
+                <button class="btn btn-sm btn-primary" id="btnProcesarPlazos"><i class="fas fa-play"></i> Procesar vencidos</button>
+                <button class="btn btn-sm btn-success" id="btnNuevoPlazo"><i class="fas fa-plus"></i> Nuevo Pago a Plazos</button>
+            </div>
+        </div>
+
+        <div class="card-grid" id="cardGridPlazos"></div>
+        <div id="paginationContainerPlazos"></div>
+        <div id="emptyStatePlazos" style="display:none;text-align:center;padding:3rem;color:var(--text-secondary);">
+            <i class="fas fa-calendar-check" style="font-size:3rem;opacity:0.3;display:block;margin-bottom:1rem;"></i>
+            <p>No hay pagos a plazos registrados</p>
+        </div>
+    </div>
+</main>
+
+<!-- ═══ MODAL: REGISTRAR PAGO DIRECTO ═══ -->
+<div class="modal" id="pagoDirectoModal">
+    <div class="modal-content modal-md">
+        <div class="modal-header">
+            <h3><i class="fas fa-cash-register"></i> <span id="pagoDirModalTitle">Registrar Pago</span></h3>
+            <button class="modal-close" id="pagoDirModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="pagoDirId">
+            <div class="form-group">
+                <label>Concepto *</label>
+                <input type="text" id="pagoDirConcepto" placeholder="Ej: Arriendo, Servicio, Compra..." maxlength="150">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="pagoDirDescripcion" placeholder="Detalle del pago..." maxlength="255">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div class="form-group">
+                    <label>Monto *</label>
+                    <input type="number" id="pagoDirMonto" min="0" step="1000" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="pagoDirFecha">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div class="form-group">
+                    <label>Forma de Pago *</label>
+                    <select id="pagoDirFormaPago">
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="tarjeta_credito">Tarjeta Crédito</option>
+                        <option value="tarjeta_debito">Tarjeta Débito</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cuenta Bancaria *</label>
+                    <select id="pagoDirCuentaBancaria"><option value="">— Seleccionar cuenta —</option></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Receptor / Beneficiario</label>
+                <input type="text" id="pagoDirReceptor" placeholder="Nombre de quien recibe..." maxlength="150">
+            </div>
+            <div class="form-group">
+                <label>Observación</label>
+                <textarea id="pagoDirObservacion" rows="2" placeholder="Notas..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="pagoDirCancelar"><i class="fas fa-times"></i> Cancelar</button>
+            <button type="button" class="btn btn-success" id="pagoDirConfirmar"><i class="fas fa-check"></i> Registrar Pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: PAGO A PLAZOS ═══ -->
+<div class="modal" id="plazoModal">
+    <div class="modal-content modal-md">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-plus"></i> <span id="plazoModalTitle">Nuevo Pago a Plazos</span></h3>
+            <button class="modal-close" id="plazoModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="plazoId">
+            <div class="form-group">
+                <label>Concepto *</label>
+                <select id="plazoConcepto">
+                    <option value="">— Seleccionar —</option>
+                    <option value="Arriendo">Arriendo</option>
+                    <option value="Crédito">Crédito</option>
+                    <option value="Sueldo">Sueldo</option>
+                    <option value="Seguro">Seguro</option>
+                    <option value="Servicio">Servicio (agua, luz, internet)</option>
+                    <option value="Impuesto">Impuesto</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="plazoDescripcion" placeholder="Detalle del pago...">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <div class="form-group">
+                    <label>Monto *</label>
+                    <input type="number" id="plazoMonto" min="0" step="1000" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Pago *</label>
+                    <input type="date" id="plazoFechaPago">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Cuenta Bancaria *</label>
+                <select id="plazoCuentaBancaria"><option value="">— Seleccionar cuenta —</option></select>
+            </div>
+            <div class="form-group">
+                <label>Receptor del Pago</label>
+                <input type="text" id="plazoReceptor" placeholder="Nombre de quien recibe...">
+            </div>
+            <div class="form-group">
+                <label>Observación</label>
+                <textarea id="plazoObservacion" rows="2" placeholder="Notas..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="plazoCancelar"><i class="fas fa-times"></i> Cancelar</button>
+            <button type="button" class="btn btn-success" id="plazoConfirmar"><i class="fas fa-check"></i> Registrar</button>
+        </div>
+    </div>
+</div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+<script src="js/pagos.js?v=20260710020000"></script>
+<script src="js/command-palette.js?v=20260710020000"></script>
+</body>
+</html>

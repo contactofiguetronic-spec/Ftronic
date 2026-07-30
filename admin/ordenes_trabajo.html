@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes de Trabajo - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260706050000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260706050000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span> Órdenes de Trabajo</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+        </div>
+    </header>
+    <div class="breadcrumbs"></div>
+    <div class="module-hero yellow">
+        <div class="mh-icon"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span></div>
+        <h2>Recepciones</h2>
+        <div class="mh-subtitle">Seleccione una recepción para ver sus datos o gestionar su Orden de Trabajo.</div>
+    </div>
+
+    <!-- KPI Badges -->
+    <div class="ot-kpi-row" id="kpiRow">
+        <div class="ot-kpi-card" id="kpiPendientes"><span class="ot-kpi-val">0</span><span class="ot-kpi-lbl">Pendientes</span></div>
+        <div class="ot-kpi-card" id="kpiDiagnostico"><span class="ot-kpi-val">0</span><span class="ot-kpi-lbl">En Diagnóstico</span></div>
+        <div class="ot-kpi-card" id="kpiConPresup"><span class="ot-kpi-val">0</span><span class="ot-kpi-lbl">Con Presupuesto</span></div>
+        <div class="ot-kpi-card" id="kpiPagadas"><span class="ot-kpi-val">0</span><span class="ot-kpi-lbl">Pagadas Mes</span></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="data-toolbar">
+        <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por patente, cliente o problema...">
+        </div>
+        <div class="toolbar-actions">
+            <select id="filterEstado" class="ot-filter-select" title="Filtrar por estado">
+                <option value="">Todos los estados</option>
+                <option value="abierta">Abiertas</option>
+                <option value="proceso">En Proceso</option>
+                <option value="diagnostico">En Diagnóstico</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+            <button class="btn btn-sm btn-primary" id="btnRefreshList"><i class="fas fa-sync-alt"></i> Actualizar</button>
+        </div>
+    </div>
+
+    <!-- ═══ LIST VIEW ═══ -->
+    <div id="listView">
+        <!-- Órdenes Abiertas — Horizontal -->
+        <div class="ot-section" id="sectionAbiertas">
+            <div class="ot-section-header">
+                <div class="ot-section-title"><i class="fas fa-folder-open"></i> Órdenes Abiertas</div>
+                <span class="ot-section-count" id="abiertasCount">0</span>
+            </div>
+            <div class="ot-abiertas-row" id="otAbiertasList"></div>
+            <div class="ot-section-empty" id="otAbiertasEmpty" style="display:none">No hay órdenes abiertas</div>
+        </div>
+
+        <!-- En Proceso / Diagnóstico — Grid -->
+        <div class="ot-section" id="sectionProceso">
+            <div class="ot-section-header">
+                <div class="ot-section-title"><i class="fas fa-wrench"></i> En Proceso / Diagnóstico</div>
+                <span class="ot-section-count" id="procesoCount">0</span>
+            </div>
+            <div class="ot-proceso-grid" id="otProcesoList"></div>
+            <div class="ot-section-empty" id="otProcesoEmpty" style="display:none">No hay órdenes en proceso</div>
+        </div>
+
+        <div id="otPagination" class="ot-pagination"></div>
+        <div class="ot-empty" id="otEmpty" style="display:none">
+            <i class="fas fa-inbox"></i>
+            <p>No hay órdenes de trabajo registradas</p>
+        </div>
+    </div>
+
+    <!-- ═══ FICHA COMPLETA ═══ -->
+    <div class="ficha-container" id="fichaContainer">
+        <div class="ficha-header">
+            <div class="ficha-avatar" id="fichaAvatar">OT</div>
+            <div class="ficha-info">
+                <h2 id="fichaTitle">—</h2>
+                <div class="ficha-sub" id="fichaSub">—</div>
+            </div>
+            <div class="ficha-actions">
+                <button class="btn btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                <button class="btn btn-accent" id="btnFichaPdf" style="display:none"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-danger" id="btnFichaDelete" data-perm="ot:eliminar"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+
+        <div class="stats-row" id="fichaStats"></div>
+
+        <!-- Status bar -->
+        <div class="ot-status-bar" id="otStatusBar">
+            <div class="ot-status-left">
+                <label>Estado:</label>
+                <span id="otStatusBadge" class="ot-estado" style="font-size:0.85rem;padding:0.3rem 0.8rem;border-radius:6px;font-weight:600;">—</span>
+            </div>
+            <div class="ot-status-right">
+                <label>Asignado:</label>
+                <select id="otAsignadoSelect" data-linked="empleados"><option value="">—</option></select>
+                <button class="btn btn-xs btn-primary" id="btnAsignar"><i class="fas fa-check"></i></button>
+            </div>
+        </div>
+
+        <div class="ficha-tabs" id="fichaTabs">
+            <div class="ficha-tab active" data-tab="datos"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Datos OT</div>
+            <div class="ficha-tab" data-tab="recepcion"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepción</div>
+            <div class="ficha-tab" data-tab="adjuntos"><i class="fas fa-photo-video"></i> Evidencia</div>
+        </div>
+
+        <!-- TAB: Datos OT -->
+        <div class="ficha-panel active" id="tabDatos">
+            <!-- Client + Vehicle + Presupuesto info -->
+            <div class="ot-info-grid">
+                <div class="ot-info-card">
+                    <div class="ot-info-card-header"><i class="fas fa-user"></i> Cliente</div>
+                    <div class="ot-info-card-body" id="otClienteInfo">
+                        <div class="ot-info-row"><span class="ot-info-label">Nombre</span><span id="otCliNombre">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">RUT</span><span id="otCliRut">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Teléfono</span><span id="otCliTelefono">—</span></div>
+                    </div>
+                </div>
+                <div class="ot-info-card">
+                    <div class="ot-info-card-header"><i class="fas fa-car"></i> Vehículo</div>
+                    <div class="ot-info-card-body" id="otVehiculoInfo">
+                        <div class="ot-info-row"><span class="ot-info-label">Patente</span><span id="otVehPatente">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Marca/Modelo</span><span id="otVehMarcaModelo">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Año</span><span id="otVehAnio">—</span></div>
+                    </div>
+                </div>
+                <div class="ot-info-card">
+                    <div class="ot-info-card-header"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span> Presupuesto</div>
+                    <div class="ot-info-card-body" id="otPresupuestoInfo">
+                        <div class="ot-info-row"><span class="ot-info-label">Presupuesto</span><span id="otPresupId">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Monto</span><span id="otPresupMonto">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Estado</span><span id="otPresupEstado">—</span></div>
+                    </div>
+                </div>
+                <div class="ot-info-card">
+                    <div class="ot-info-card-header"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepción</div>
+                    <div class="ot-info-card-body" id="otRecepcionInfo">
+                        <div class="ot-info-row"><span class="ot-info-label">Folio</span><span id="otRecepFolio">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Fecha</span><span id="otRecepFecha">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Motivo</span><span id="otRecepMotivo">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Estado</span><span id="otRecepEstado">—</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card tiempos de trabajo -->
+            <div class="ot-info-grid" style="margin-top:0.5rem;">
+                <div class="ot-info-card">
+                    <div class="ot-info-card-header"><i class="fas fa-play-circle"></i> Inicio / Fin Trabajo</div>
+                    <div class="ot-info-card-body" id="otTiemposInfo">
+                        <div class="ot-info-row"><span class="ot-info-label">Inicio</span><span id="otInicioTrabajo">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Técnico</span><span id="otTecnicoAsignado">—</span></div>
+                        <div class="ot-info-row"><span class="ot-info-label">Tiempo</span><span id="otTiempoTranscurrido">—</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top:0.75rem;">
+                <div class="form-group"><label>Fecha</label><input type="date" id="otFecha"></div>
+                <div class="form-group"><label>Empleado Asignado *</label><select id="otEmpleadoSelect" data-linked="empleados" required><option value="">— Seleccionar técnico —</option></select></div>
+                <div class="form-group full-width"><label>Descripción del Problema</label><textarea id="otDescripcionProblema" rows="2" placeholder="Qué reporta el cliente..."></textarea></div>
+                <div class="form-group full-width"><label>Procedimiento Técnico Sugerido</label><textarea id="otProcedimientoTecnico" rows="2" placeholder="Procedimiento sugerido para el técnico..."></textarea></div>
+                <div class="form-group full-width"><label>Notas Adicionales</label><textarea id="otNotasAdicionales" rows="2" placeholder="Cualquier otra observación..."></textarea></div>
+            </div>
+
+            <div class="form-group">
+                <label><strong>Repuestos del Cliente (para instalar)</strong></label>
+                <div id="otRepuestosClienteList" style="margin-bottom:0.5rem;"></div>
+                <button type="button" class="btn btn-sm btn-outline" id="btnAgregarRepuestoCliente"><i class="fas fa-plus"></i> Agregar Ítem</button>
+            </div>
+            <div class="form-group">
+                <label><strong>Repuestos del Taller</strong></label>
+                <div id="otRepuestosTallerList" style="margin-bottom:0.5rem;"></div>
+                <button type="button" class="btn btn-sm btn-outline" id="btnAgregarRepuestoTaller"><i class="fas fa-plus"></i> Agregar Repuesto</button>
+            </div>
+            <div class="form-group">
+                <label><strong>Servicios y Trabajos</strong></label>
+                <div id="otServiciosList" style="margin-bottom:0.5rem;"></div>
+                <button type="button" class="btn btn-sm btn-outline" id="btnAgregarServicio"><i class="fas fa-plus"></i> Agregar Servicio</button>
+            </div>
+            <div class="form-group">
+                <label><strong>Comentarios para el Empleado</strong></label>
+                <textarea id="otComentariosEmpleado" rows="2" placeholder="Indicaciones especiales para el técnico..."></textarea>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-success" id="btnCrearPresupuesto"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span> Crear Presupuesto</button>
+                <button class="btn btn-primary" id="btnIrPresupuesto" style="display:none"><i class="fas fa-arrow-right"></i> Ir a Presupuesto</button>
+                <button class="btn btn-warning" id="btnVerPresupuesto" style="display:none"><i class="fas fa-eye"></i> Ver Presupuesto</button>
+                <button class="btn btn-accent" id="btnIrEjecucion" style="display:none"><i class="fas fa-arrow-right"></i> Ir a Ejecución</button>
+                <button class="btn btn-primary" id="btnGuardarDatosOT"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </div>
+
+        <!-- TAB: Recepción -->
+        <div class="ficha-panel" id="tabRecepcion">
+            <div id="otRecepcionContent">
+                <div class="empty-state" style="padding:2rem;text-align:center;color:var(--text-secondary);">
+                    <i class="fas fa-clipboard-list" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
+                    Sin datos de recepción vinculados
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Evidencia -->
+        <div class="ficha-panel" id="tabAdjuntos">
+            <div class="multimedia-area" id="otMultimediaArea">
+                <div id="otExistingMediaContainer" style="display:none;">
+                    <div class="existing-media-grid" id="otExistingMediaGrid"></div>
+                </div>
+                <div class="multimedia-toolbar" id="otMultimediaToolbar"></div>
+                <div class="upload-zone compact" id="otUploadZone"><i class="fas fa-cloud-upload-alt"></i><p>Arrastra fotos o adjuntos</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recepciones Abiertas Modal -->
+    <div class="modal" id="recepModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span> Recepciones Abiertas</h3>
+                <button class="modal-close" id="recepModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:0.75rem;color:var(--text-secondary);font-size:0.85rem;">Seleccione una recepción para crear una Orden de Trabajo.</p>
+                <div id="recepLista" style="max-height:60vh;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="recepCancelar"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Repuesto del Taller -->
+    <div class="modal" id="repuestoTallerModal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-box"></i> Agregar Repuesto del Taller</h3>
+                <button class="modal-close" onclick="cerrarModalRepuesto()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Buscar Artículo</label>
+                    <input type="text" id="buscarArticuloTaller" placeholder="Escriba para filtrar la lista..." autocomplete="off">
+                </div>
+                <div id="articulosLista" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color);border-radius:var(--radius-sm);margin-bottom:0.5rem;"></div>
+                <div id="selectedArticuloInfo" style="display:none;padding:0.5rem;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:0.75rem;">
+                    <strong id="selectedArticuloNombre"></strong>
+                    <span id="selectedArticuloStock" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input type="number" id="repuestoTallerCantidad" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Detalle / Observación</label>
+                    <textarea id="repuestoTallerDetalle" rows="2" placeholder="Descripción del repuesto..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalRepuesto()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarRepuestoTaller"><i class="fas fa-save"></i> Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Servicio/Trabajo -->
+    <div class="modal" id="servicioModal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><span class="nav-icon-box icon-gears"><i class="fas fa-gears"></i></span> Agregar Servicio / Trabajo</h3>
+                <button class="modal-close" onclick="cerrarModalServicio()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Buscar Servicio</label>
+                    <input type="text" id="buscarServicioTrabajo" placeholder="Escriba para filtrar la lista..." autocomplete="off">
+                </div>
+                <div id="serviciosLista" style="max-height:220px;overflow-y:auto;border:1px solid var(--border-color);border-radius:var(--radius-sm);margin-bottom:0.5rem;"></div>
+                <div id="selectedServicioInfo" style="display:none;padding:0.5rem;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:0.75rem;">
+                    <strong id="selectedServicioNombre"></strong>
+                    <span id="selectedServicioPrecio" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                </div>
+                <div class="form-group">
+                    <label>Detalle / Observación</label>
+                    <textarea id="servicioDetalle" rows="2" placeholder="Descripción del servicio..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalServicio()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarServicio"><i class="fas fa-save"></i> Agregar</button>
+            </div>
+        </div>
+    </div>
+
+
+</main>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/pdf-generator.js?v=20260706050000"></script>
+    <script src="js/ordenes_trabajo.js?v=20260706050000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>

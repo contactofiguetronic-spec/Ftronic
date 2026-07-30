@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas Diarias - Figuetronic</title>
+    <link rel="stylesheet" href="css/index.css?v=20260707060000">
+    <link rel="stylesheet" href="css/ficha.css?v=20260707070000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .task-filters{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+        .task-filters .filter-btn{padding:0.45rem 1rem;border-radius:20px;border:1.5px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+        .task-filters .filter-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(75,123,236,.05)}
+        .task-filters .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 8px rgba(75,123,236,.25)}
+
+        .task-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+        .task-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:1rem 1.2rem;cursor:pointer;transition:all .2s;position:relative}
+        .task-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+        .task-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px rgba(75,123,236,.2)}
+        .tc-header{display:flex;align-items:flex-start;gap:0.7rem;margin-bottom:0.6rem}
+        .tc-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0}
+        .tc-meta{flex:1;min-width:0}
+        .tc-folio{font-size:0.65rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px}
+        .tc-title{font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .tc-assignee{font-size:0.72rem;color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px}
+        .tc-badges{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.5rem}
+        .tc-badge{padding:0.2rem 0.55rem;border-radius:6px;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+        .tc-badge.pendiente{background:rgba(245,158,11,.12);color:#b45309}
+        .tc-badge.en_progreso{background:rgba(75,123,236,.12);color:#1e40af}
+        .tc-badge.detenida{background:rgba(239,68,68,.12);color:#991b1b}
+        .tc-badge.completada{background:rgba(16,185,129,.12);color:#065f46}
+        .tc-badge.cancelada{background:rgba(107,114,128,.12);color:#374151}
+        .tc-badge.urgente{background:#dc2626;color:#fff}
+        .tc-badge.alta{background:#f59e0b;color:#fff}
+        .tc-badge.normal{background:#6b7280;color:#fff}
+        .tc-badge.baja{background:#d1d5db;color:#374151}
+        .tc-info{display:flex;gap:1rem;font-size:0.7rem;color:var(--text-secondary);margin-top:0.4rem}
+        .tc-info span{display:flex;align-items:center;gap:3px}
+        .tc-progress{margin-top:0.5rem}
+        .tc-progress-bar{height:4px;background:var(--border-color);border-radius:2px;overflow:hidden}
+        .tc-progress-fill{height:100%;border-radius:2px;transition:width .3s}
+
+        .detail-tabs{display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:1rem}
+        .detail-tab{padding:0.6rem 1.2rem;font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;display:flex;align-items:center;gap:6px}
+        .detail-tab:hover{color:var(--text-primary)}
+        .detail-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        .detail-tab .tab-count{background:var(--bg-secondary);padding:0.1rem 0.4rem;border-radius:10px;font-size:0.6rem;font-weight:700}
+        .detail-tab.active .tab-count{background:rgba(75,123,236,.12);color:var(--primary)}
+
+        .detail-panel{display:none}
+        .detail-panel.active{display:block}
+
+        .detail-desc{font-size:0.85rem;color:var(--text-primary);line-height:1.7;white-space:pre-wrap;padding:1rem;background:var(--bg-secondary);border-radius:10px;margin-bottom:1rem}
+        .detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem}
+        .meta-item{display:flex;flex-direction:column;gap:2px}
+        .meta-item label{font-size:0.68rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px}
+        .meta-item span{font-size:0.85rem;color:var(--text-primary);font-weight:500}
+
+        .avance-timeline{display:flex;flex-direction:column;gap:0}
+        .avance-item{display:flex;gap:0.8rem;padding:0.8rem 0;border-bottom:1px solid var(--border-color);position:relative}
+        .avance-item:last-child{border-bottom:none}
+        .avance-line{width:20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+        .avance-dot{width:10px;height:10px;border-radius:50%;background:var(--primary);flex-shrink:0}
+        .avance-stem{width:2px;flex:1;background:var(--border-color);margin-top:4px}
+        .avance-item:last-child .avance-stem{display:none}
+        .avance-content{flex:1}
+        .avance-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+        .avance-title{font-size:0.82rem;font-weight:700;color:var(--text-primary)}
+        .avance-pct{font-size:0.7rem;font-weight:700;color:var(--primary);background:rgba(75,123,236,.08);padding:0.15rem 0.5rem;border-radius:10px}
+        .avance-text{font-size:0.8rem;color:var(--text-secondary);line-height:1.5}
+        .avance-meta{font-size:0.65rem;color:var(--text-secondary);margin-top:4px;display:flex;gap:0.8rem}
+        .avance-media{margin-top:0.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px}
+        .avance-media img{width:100%;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border-color)}
+        .avance-media video{width:100%;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color)}
+        .avance-media audio{width:100%;height:36px;border-radius:6px}
+        .avance-delete{color:var(--danger);cursor:pointer;font-size:0.65rem;opacity:0.4}
+        .avance-delete:hover{opacity:1}
+
+        .comment-list{display:flex;flex-direction:column;gap:0}
+        .comment-item{display:flex;gap:0.6rem;padding:0.7rem 0;border-bottom:1px solid var(--border-color)}
+        .comment-item:last-child{border-bottom:none}
+        .comment-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;flex-shrink:0}
+        .comment-body{flex:1}
+        .comment-header{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+        .comment-author{font-size:0.75rem;font-weight:600;color:var(--text-primary)}
+        .comment-time{font-size:0.62rem;color:var(--text-secondary)}
+        .comment-delete{margin-left:auto;color:var(--danger);cursor:pointer;font-size:0.65rem;opacity:0.4}
+        .comment-delete:hover{opacity:1}
+        .comment-text{font-size:0.8rem;color:var(--text-secondary);line-height:1.4}
+        .comment-media{margin-top:0.3rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:4px}
+        .comment-media img{width:100%;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border-color)}
+        .comment-media video{width:100%;height:70px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color)}
+        .comment-media audio{width:100%;height:32px;border-radius:6px}
+
+        .comment-form{margin-top:0.8rem;border-top:1px solid var(--border-color);padding-top:0.8rem}
+        .comment-input-row{display:flex;gap:0.5rem;align-items:flex-start}
+        .comment-input{flex:1;border:1px solid var(--border-color);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.78rem;resize:none;min-height:36px;max-height:100px;font-family:inherit;background:var(--bg-card);color:var(--text-primary)}
+        .comment-input:focus{outline:none;border-color:var(--primary)}
+        .comment-send{padding:0.5rem 0.9rem;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600}
+        .comment-send:hover{background:#3d6fd9}
+        .comment-media-btn{padding:0.5rem;background:var(--bg-secondary);color:var(--text-secondary);border:none;border-radius:8px;cursor:pointer;font-size:0.85rem}
+        .comment-media-btn:hover{color:var(--primary)}
+        .comment-preview{display:flex;gap:4px;flex-wrap:wrap;margin-top:0.4rem}
+        .comment-preview-item{position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid var(--border-color)}
+        .comment-preview-item img,.comment-preview-item video{width:100%;height:100%;object-fit:cover}
+        .comment-preview-remove{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:var(--danger);color:#fff;border-radius:50%;border:none;font-size:0.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem;margin-bottom:1rem}
+        .stat-card{background:var(--bg-secondary);border-radius:10px;padding:1rem;text-align:center}
+        .stat-card .stat-val{font-size:1.6rem;font-weight:800;color:var(--text-primary)}
+        .stat-card .stat-label{font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+
+        .media-upload-zone{border:2px dashed var(--border-color);border-radius:10px;padding:1.5rem;text-align:center;color:var(--text-secondary);cursor:pointer;transition:all .2s;margin-top:0.5rem}
+        .media-upload-zone:hover{border-color:var(--primary);background:rgba(75,123,236,.03)}
+        .media-upload-zone i{font-size:1.5rem;margin-bottom:0.3rem;display:block}
+        .media-upload-zone p{font-size:0.75rem;margin:0}
+        .media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:0.5rem}
+        .media-grid .media-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border-color)}
+        .media-grid .media-item img,.media-grid .media-item video{width:100%;height:100px;object-fit:cover;display:block}
+        .media-grid .media-item audio{width:100%;height:36px}
+        .media-grid .media-item .media-delete{position:absolute;top:4px;right:4px;width:20px;height:20px;background:var(--danger);color:#fff;border-radius:50%;border:none;font-size:0.6rem;cursor:pointer;display:none;align-items:center;justify-content:center}
+        .media-grid .media-item:hover .media-delete{display:flex}
+
+        @media(max-width:768px){
+            .task-filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+            .detail-meta{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+        <aside class="sidebar" id="sidebar-mount"></aside>
+<script src="js/sidebar-loader.js"></script>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h1 class="page-title"><span class="nav-icon-box icon-checklist"><i class="fas fa-list-check"></i></span> Tareas Diarias</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-sm btn-secondary" id="btnHeaderSearch" title="Buscar (\u2318K)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-help" id="btnHelp" title="Ayuda del módulo"><i class="fas fa-question"></i></button>
+            </div>
+        </header>
+        <div class="breadcrumbs"></div>
+
+        <!-- LIST VIEW -->
+        <div id="listView">
+            <div class="module-hero orange">
+                <div class="mh-icon"><span class="nav-icon-box icon-checklist"><i class="fas fa-list-check"></i></span></div>
+                <h2>Tareas Diarias</h2>
+                <div class="mh-subtitle">Blog de trabajo del taller. Registra avances, comenta, adjunta evidencia y mantén el seguimiento en tiempo real.</div>
+            </div>
+
+            <div class="data-toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar tareas...">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-sm btn-primary" id="btnNueva"><i class="fas fa-plus"></i> Nueva Tarea</button>
+                </div>
+            </div>
+
+            <div class="task-filters" id="taskFilters">
+                <button class="filter-btn active" data-status="">Todas</button>
+                <button class="filter-btn" data-status="pendiente">Pendientes</button>
+                <button class="filter-btn" data-status="en_progreso">En Progreso</button>
+                <button class="filter-btn" data-status="detenida">Detenidas</button>
+                <button class="filter-btn" data-status="completada">Completadas</button>
+                <button class="filter-btn" data-status="cancelada">Canceladas</button>
+            </div>
+
+            <div class="task-card-grid" id="cardGrid"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <!-- FICHA / DETAIL VIEW -->
+        <div class="ficha-container" id="fichaContainer">
+            <div class="ficha-topbar">
+                <button class="btn btn-sm btn-secondary" id="btnBackList"><i class="fas fa-arrow-left"></i> Volver</button>
+                <div class="ficha-topbar-right">
+                    <button class="btn btn-sm btn-danger" id="btnFichaDelete"><i class="fas fa-trash"></i> Eliminar</button>
+                </div>
+            </div>
+
+            <div class="ficha-header">
+                <div class="ficha-avatar gradient-orange" id="fichaAvatar">TA</div>
+                <div class="ficha-info">
+                    <div class="ficha-title" id="fichaTitle">Nueva Tarea</div>
+                    <div class="ficha-subtitle" id="fichaSub">Crear nueva tarea</div>
+                </div>
+                <div class="ficha-actions">
+                    <button type="button" class="btn btn-accent" id="btnSolicitarCompra"><i class="fas fa-shopping-cart"></i> Solicitar Compra</button>
+                </div>
+            </div>
+
+            <div class="ficha-stats" id="fichaStats"></div>
+
+            <div class="detail-tabs">
+                <div class="detail-tab active" data-tab="datos"><i class="fas fa-info-circle"></i> Datos</div>
+                <div class="detail-tab" data-tab="avances"><i class="fas fa-chart-line"></i> Avances <span class="tab-count" id="tabAvancesCount">0</span></div>
+                <div class="detail-tab" data-tab="comentarios"><i class="fas fa-comment-dots"></i> Comentarios <span class="tab-count" id="tabComentariosCount">0</span></div>
+                <div class="detail-tab" data-tab="multimedia"><i class="fas fa-photo-video"></i> Archivos <span class="tab-count" id="tabMediaCount">0</span></div>
+                <div class="detail-tab" data-tab="stats"><i class="fas fa-chart-bar"></i> Estadísticas</div>
+            </div>
+
+            <!-- Tab: Datos -->
+            <div class="detail-panel active" id="tabDatos">
+                <form id="dataForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="record_id">
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>Título <span class="required-dot">*</span></label><input type="text" id="nombre" name="nombre" placeholder="¿Qué se necesita hacer?" required></div>
+                        <div class="form-group"><label>Empleado Asignado</label><select id="asignado_empleado_id" name="asignado_empleado_id"><option value="">—</option></select></div>
+                        <div class="form-group"><label>Fecha</label><input type="date" id="fecha" name="fecha"></div>
+                        <div class="form-group"><label>Prioridad</label><select id="prioridad" name="prioridad"><option value="baja">Baja</option><option value="normal" selected>Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></div>
+                        <div class="form-group"><label>Estado</label><select id="estado" name="estado"><option value="pendiente" selected>Pendiente</option><option value="en_progreso">En Progreso</option><option value="detenida">Detenida</option><option value="completada">Completada</option><option value="cancelada">Cancelada</option></select></div>
+                        <div class="form-group"><label>Proceso</label><div class="select-wrapper"><select id="proceso" name="proceso" data-category="proceso_tarea"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group"><label>Tipo</label><div class="select-wrapper"><select id="tipo" name="tipo" data-category="tipo_tarea"><option value="">—</option></select><button type="button" class="btn-add-option" title="Nuevo"><i class="fas fa-plus"></i> Nuevo</button></div></div>
+                        <div class="form-group full-width"><label>Descripción</label><textarea id="detalles" name="detalles" rows="4" placeholder="Describe los detalles de la tarea..."></textarea></div>
+                        <div class="form-group full-width"><label>Observaciones</label><textarea id="observaciones" name="observaciones" rows="2" placeholder="Notas adicionales..."></textarea></div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" id="btnReset"><i class="fas fa-times"></i> Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Avances -->
+            <div class="detail-panel" id="tabAvances">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <h3 style="font-size:0.9rem;color:var(--text-primary);margin:0"><i class="fas fa-chart-line" style="color:var(--primary)"></i> Avances de la Tarea</h3>
+                    <button class="btn btn-sm btn-primary" id="btnNuevoAvance"><i class="fas fa-plus"></i> Nuevo Avance</button>
+                </div>
+                <div class="avance-timeline" id="avancesTimeline">
+                    <div style="text-align:center;padding:2rem;color:var(--text-secondary);font-size:0.82rem"><i class="fas fa-chart-line" style="font-size:1.5rem;opacity:0.3;display:block;margin-bottom:0.5rem"></i> Sin avances registrados</div>
+                </div>
+            </div>
+
+            <!-- Tab: Comentarios -->
+            <div class="detail-panel" id="tabComentarios">
+                <div class="comment-list" id="commentList">
+                    <div style="text-align:center;padding:2rem;color:var(--text-secondary);font-size:0.82rem"><i class="fas fa-comment-dots" style="font-size:1.5rem;opacity:0.3;display:block;margin-bottom:0.5rem"></i> Sin comentarios</div>
+                </div>
+                <div class="comment-form">
+                    <input type="file" id="commentFileInput" multiple accept="image/*,video/*,audio/*" style="display:none">
+                    <div class="comment-input-row">
+                        <button type="button" class="comment-media-btn" id="btnCommentMedia" title="Adjuntar archivo"><i class="fas fa-paperclip"></i></button>
+                        <textarea class="comment-input" id="commentInput" placeholder="Escribe un comentario..." rows="1"></textarea>
+                        <button class="comment-send" id="btnSendComment"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <div class="comment-preview" id="commentPreview"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Multimedia -->
+            <div class="detail-panel" id="tabMultimedia">
+                <div class="media-upload-zone" id="mediaUploadZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra fotos, videos o audio aquí</p>
+                </div>
+                <input type="file" id="mediaFileInput" multiple accept="image/*,video/*,audio/*" style="display:none">
+                <div class="media-grid" id="mediaGrid"></div>
+            </div>
+
+            <!-- Tab: Estadísticas -->
+            <div class="detail-panel" id="tabStats">
+                <div class="stats-grid" id="taskStats"></div>
+                <div id="statsCharts"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Avance Modal -->
+    <div class="modal" id="avanceModal">
+        <div class="modal-content modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-line"></i> Registrar Avance</h3>
+                <button class="modal-close" id="avanceModalClose"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="avanceForm" enctype="multipart/form-data">
+                <input type="hidden" name="tarea_id" id="avance_tarea_id">
+                <div class="modal-body">
+                    <div style="display:flex;flex-direction:column;gap:0.8rem;">
+                        <div class="form-group">
+                            <label>Título del Avance</label>
+                            <input type="text" id="avance_titulo" name="titulo" placeholder="Ej: Se completó el diagnóstico" style="width:100%;">
+                        </div>
+                        <div class="form-group">
+                            <label>Detalle <span class="required-dot">*</span></label>
+                            <textarea id="avance_descripcion" name="descripcion" rows="4" placeholder="Describe el avance realizado..." required style="width:100%;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Porcentaje de Avance (0-100)</label>
+                            <input type="number" id="avance_porcentaje" name="porcentaje" min="0" max="100" placeholder="0" style="width:100%;">
+                        </div>
+                    </div>
+                    <label style="font-weight:600;font-size:0.8rem;color:var(--text-primary);margin-bottom:0.3rem;display:block;margin-top:0.5rem"><i class="fas fa-camera"></i> Fotos, Videos o Notas de Voz</label>
+                    <div class="media-upload-zone" id="avanceUploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Haz clic o arrastra archivos aquí</p>
+                    </div>
+                    <input type="file" id="avanceFileInput" multiple accept="image/*,video/*,audio/*" style="display:none">
+                    <div class="media-grid" id="avancePreviewGrid"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="avanceCancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="avanceSave"><i class="fas fa-save"></i> Guardar Avance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-inner">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="nav-icon-box icon-home"><i class="fas fa-house-chimney"></i></span><span>Inicio</span></a>
+            <a href="ordenes_trabajo.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-screwdriver-wrench"></i></span><span>OTs</span></a>
+            <a href="recepcion_unificada.html" class="bottom-nav-item"><span class="nav-icon-box icon-clipboard"><i class="fas fa-clipboard-list"></i></span><span>Recepción</span></a>
+<a href="desarme_automotriz.html" class="bottom-nav-item"><span class="nav-icon-box icon-wrench"><i class="fas fa-car-burst"></i></span><span>Desarme</span></a>
+            <a href="presupuestos.html" class="bottom-nav-item"><span class="nav-icon-box icon-invoice"><i class="fas fa-file-invoice-dollar"></i></span><span>Presup.</span></a>
+            <a href="ingresos.html" class="bottom-nav-item"><span class="nav-icon-box icon-cash"><i class="fas fa-hand-holding-dollar"></i></span><span>Ingresos</span></a>
+            <a href="pos.html" class="bottom-nav-item"><span class="nav-icon-box icon-bolt"><i class="fas fa-cart-shopping"></i></span><span>POS</span></a>
+            <a href="pagos.html" class="bottom-nav-item"><span class="nav-icon-box icon-card"><i class="fas fa-calendar-check"></i></span><span>Pagos</span></a>
+            <button class="bottom-nav-item" id="btnBottomCmd" title="Buscar"><i class="fas fa-search"></i><span>Buscar</span></button>
+        </div>
+    </nav>
+
+<script src="js/common.js?v=20260714090000"></script>
+    <script src="js/tareas_diarias.js?v=20260707070000"></script>
+<script src="js/command-palette.js?v=20260706050000"></script>
+</body>
+</html>
