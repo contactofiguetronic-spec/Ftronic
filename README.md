@@ -106,7 +106,7 @@ bash admin/upload.sh
 
 # Subir un archivo directamente
 lftp -e "set ssl:verify-certificate no; cd /public_html/admin/js; put /ruta/local/archivo.js; quit" \
-    -u sixel4@figuetronic.cl,'Soporte.aa' ftp://figuetronic.cl
+    -u user@user,'pass' ftp://
 ```
 
 Exclusiones: `uploads/`, `sql/`, `upload.sh`, `upload.log`, `debug/`, `*.heapsnapshot`, `*.log`, `*.pyc`
